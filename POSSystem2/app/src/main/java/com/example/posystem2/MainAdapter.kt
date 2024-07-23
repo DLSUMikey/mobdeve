@@ -1,4 +1,4 @@
-package com.example.possystem2
+package com.example.posystem2
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,16 +6,15 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.posystem2.ItemModel
 
 class MainAdapter(private val mList: List<ItemModel>) :
     RecyclerView.Adapter<MainAdapter.ViewHolder>() {
 
     // ViewHolder class to hold the views for each item
-    class ViewHolder(ItemView: View) : RecyclerView.ViewHolder(ItemView) {
-        val imageView: ImageView = ItemView.findViewById(R.id.itemImageiv)
-        val textViewName: TextView = ItemView.findViewById(R.id.itemNametv)
-        val textViewPrice: TextView = ItemView.findViewById(R.id.priceTexttv)
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val imageView: ImageView = itemView.findViewById(R.id.itemImageiv)
+        val textViewName: TextView = itemView.findViewById(R.id.itemNametv)
+        val textViewPrice: TextView = itemView.findViewById(R.id.priceTexttv)
     }
 
     // Create new views (invoked by the layout manager)

@@ -52,35 +52,27 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        // Set up the RecyclerView
-        val recyclerView = findViewById<RecyclerView>(R.id.mainRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-
         // Initialize the database
-        val orderDao = OrderDao(this)
-        val itemDao = ItemDao(this)
+        val databaseHandler = DatabaseHandler(this)
 
         // Create dummy data and insert it into the database
         GlobalScope.launch {
-            val order1 = OrderEntity(orderId = 0, orderDate = Date(), totalAmount = 60.0)
-            val orderId1 = orderDao.insertOrder(order1).toInt()
-
             val items = listOf(
-                ItemEntity(id = 0, imageId = R.drawable.ic_launcher_background, itemName = "Item 1", itemPrice = 10, orderId = orderId1),
-                ItemEntity(id = 0, imageId = R.drawable.ic_launcher_background, itemName = "Item 2", itemPrice = 20, orderId = orderId1),
-                ItemEntity(id = 0, imageId = R.drawable.ic_launcher_background, itemName = "Item 3", itemPrice = 30, orderId = orderId1)
+                ItemModel(imageId = R.drawable.ic_launcher_background, itemName = "Item 1", itemPrice = 10),
+                ItemModel(imageId = R.drawable.ic_launcher_background, itemName = "Item 2", itemPrice = 20),
+                ItemModel(imageId = R.drawable.ic_launcher_background, itemName = "Item 3", itemPrice = 30)
             )
-            items.forEach { itemDao.insertItem(it) }
+            val order1 = OrderModel(orderId = 0, orderDate = Date(), totalAmount = 60.0, items = items)
+            databaseHandler.addOrder(order1)
 
-            val orders = orderDao.getAllOrders()
-            val itemsInOrders = orders.map { order ->
-                order to itemDao.getItemsByOrderId(order.orderId)
-            }
+            val orders = databaseHandler.getAllOrders()
 
-            // Update the RecyclerView with the data from the database
-            runOnUiThread {
-                val adapter = OrderAdapter(orders, itemsInOrders)
-                recyclerView.adapter = adapter
+            // Log the retrieved data for debugging purposes
+            orders.forEach { order ->
+                println("Order ID: ${order.orderId}, Date: ${order.orderDate}, Total Amount: ${order.totalAmount}")
+                order.items.forEach { item ->
+                    println("  Item Name: ${item.itemName}, Price: ${item.itemPrice}")
+                }
             }
         }
     }

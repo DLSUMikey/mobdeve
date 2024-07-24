@@ -9,11 +9,13 @@ class MyDbHelper(context: Context) : SQLiteOpenHelper(context, DbReferences.DATA
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(DbReferences.CREATE_ORDERS_TABLE)
         db.execSQL(DbReferences.CREATE_ITEMS_TABLE)
+        db.execSQL(DbReferences.CREATE_PROFILE_TABLE)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL(DbReferences.DROP_ORDERS_TABLE)
         db.execSQL(DbReferences.DROP_ITEMS_TABLE)
+        db.execSQL(DbReferences.DROP_PROFILE_TABLE)
         onCreate(db)
     }
 }

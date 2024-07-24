@@ -92,9 +92,11 @@ class DatabaseHandler(context: Context) {
 
     fun addProfile(profile: ProfileModel): Long {
         val db = dbHelper.writableDatabase
+        val encryptedEmail = SecurityUtils.encrypt(profile.email)
+        val hashedPassword = SecurityUtils.hash(profile.password)
         val values = ContentValues().apply {
-            put(DbReferences.COLUMN_EMAIL, profile.email)
-            put(DbReferences.COLUMN_PASSWORD, profile.password)
+            put(DbReferences.COLUMN_EMAIL, encryptedEmail)
+            put(DbReferences.COLUMN_PASSWORD, hashedPassword)
         }
         val profileId = db.insert(DbReferences.TABLE_PROFILE, null, values)
         db.close()
@@ -103,11 +105,12 @@ class DatabaseHandler(context: Context) {
 
     fun getProfileByEmail(email: String): ProfileModel? {
         val db = dbHelper.readableDatabase
-        val cursor = db.query(DbReferences.TABLE_PROFILE, null, "${DbReferences.COLUMN_EMAIL}=?", arrayOf(email), null, null, null)
+        val encryptedEmail = SecurityUtils.encrypt(email)
+        val cursor = db.query(DbReferences.TABLE_PROFILE, null, "${DbReferences.COLUMN_EMAIL}=?", arrayOf(encryptedEmail), null, null, null)
         return if (cursor.moveToFirst()) {
             val profile = ProfileModel(
                 profileId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PROFILE_ID)),
-                email = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMAIL)),
+                email = SecurityUtils.decrypt(cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMAIL))),
                 password = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PASSWORD))
             )
             cursor.close()
@@ -128,7 +131,7 @@ class DatabaseHandler(context: Context) {
             do {
                 val profile = ProfileModel(
                     profileId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PROFILE_ID)),
-                    email = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMAIL)),
+                    email = SecurityUtils.decrypt(cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMAIL))),
                     password = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PASSWORD))
                 )
                 profiles.add(profile)
@@ -138,7 +141,7 @@ class DatabaseHandler(context: Context) {
         db.close()
         return profiles
     }
-
+    
     fun updateProfile(profile: ProfileModel): Int {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {

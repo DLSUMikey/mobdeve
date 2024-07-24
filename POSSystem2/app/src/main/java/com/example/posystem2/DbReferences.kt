@@ -1,5 +1,3 @@
-package com.example.posystem2
-
 object DbReferences {
     const val DATABASE_VERSION = 1
     const val DATABASE_NAME = "posystem2.db"
@@ -15,6 +13,11 @@ object DbReferences {
     const val COLUMN_ITEM_NAME = "item_name"
     const val COLUMN_ITEM_PRICE = "item_price"
     const val COLUMN_ORDER_ID_FK = "order_id_fk"
+
+    const val TABLE_PROFILE = "profile"
+    const val COLUMN_PROFILE_ID = "profile_id"
+    const val COLUMN_EMAIL = "email"
+    const val COLUMN_PASSWORD = "password"
 
     const val CREATE_ORDERS_TABLE = """
         CREATE TABLE IF NOT EXISTS $TABLE_ORDERS (
@@ -35,6 +38,15 @@ object DbReferences {
         )
     """
 
+    const val CREATE_PROFILE_TABLE = """
+        CREATE TABLE IF NOT EXISTS $TABLE_PROFILE (
+            $COLUMN_PROFILE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            $COLUMN_EMAIL TEXT,
+            $COLUMN_PASSWORD TEXT
+        )
+    """
+
     const val DROP_ORDERS_TABLE = "DROP TABLE IF EXISTS $TABLE_ORDERS"
     const val DROP_ITEMS_TABLE = "DROP TABLE IF EXISTS $TABLE_ITEMS"
+    const val DROP_PROFILE_TABLE = "DROP TABLE IF EXISTS $TABLE_PROFILE"
 }

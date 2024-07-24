@@ -1,6 +1,10 @@
 package com.example.posystem2
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,19 +21,93 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var toggle: ActionBarDrawerToggle
+    private lateinit var dbHandler: DatabaseHandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.title_view)
+
+        dbHandler = DatabaseHandler(this)
+
+        // Add dummy profiles
+        GlobalScope.launch {
+            try {
+                dbHandler.addDummyProfiles()
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error adding dummy profiles", e)
+            }
+        }
+
+        val loginBtn: Button = findViewById(R.id.loginBtn)
+        val registerBtn: Button = findViewById(R.id.registerBtn)
+
+        loginBtn.setOnClickListener {
+            setContentView(R.layout.login_view)
+            setupLogin()
+        }
+
+        registerBtn.setOnClickListener {
+            setContentView(R.layout.register_view)
+            setupRegistration()
+        }
+    }
+
+    private fun setupLogin() {
+        val loginBtn2: Button = findViewById(R.id.loginBtn2)
+        loginBtn2.setOnClickListener {
+            val email = findViewById<EditText>(R.id.editTextEmail).text.toString()
+            val password = findViewById<EditText>(R.id.editTextPass).text.toString()
+
+            GlobalScope.launch {
+                try {
+                    val profile = dbHandler.getProfileByEmail(email)
+                    runOnUiThread {
+                        if (profile != null && profile.password == password) {
+                            switchToMainLayout()
+                        } else {
+                            Toast.makeText(this@MainActivity, "Invalid email or password", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error during login", e)
+                }
+            }
+        }
+    }
+
+    private fun setupRegistration() {
+        val registerBtn2: Button = findViewById(R.id.registerBtn2)
+        registerBtn2.setOnClickListener {
+            val email = findViewById<EditText>(R.id.editTextEmail).text.toString()
+            val password = findViewById<EditText>(R.id.editTextPass).text.toString()
+
+            GlobalScope.launch {
+                try {
+                    val existingProfile = dbHandler.getProfileByEmail(email)
+                    runOnUiThread {
+                        if (existingProfile == null) {
+                            val profile = ProfileModel(0, email, password)
+                            dbHandler.addProfile(profile)
+                            switchToMainLayout()
+                        } else {
+                            Toast.makeText(this@MainActivity, "Email already registered", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error during registration", e)
+                }
+            }
+        }
+    }
+
+    private fun switchToMainLayout() {
         setContentView(R.layout.activity_main)
 
-        // Set the status bar color
         window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
 
-        // Set up the toolbar
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        // Set up the navigation drawer
         drawerLayout = findViewById(R.id.drawer_layout)
         toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawerLayout.addDrawerListener(toggle)
@@ -38,41 +116,30 @@ class MainActivity : AppCompatActivity() {
         val navigationView: NavigationView = findViewById(R.id.navigation_view)
         navigationView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home -> {
-                    // Handle Home action
-                }
-                R.id.nav_profile -> {
-                    // Handle Profile action
-                }
-                R.id.nav_settings -> {
-                    // Handle Settings action
-                }
+                R.id.nav_home -> { /* Handle Home action */ }
+                R.id.nav_profile -> { /* Handle Profile action */ }
+                R.id.nav_settings -> { /* Handle Settings action */ }
             }
             drawerLayout.closeDrawers()
             true
         }
 
-        // Initialize the database
-        val databaseHandler = DatabaseHandler(this)
+        setupRecyclerView()
+    }
 
-        // Create dummy data and insert it into the database
+    private fun setupRecyclerView() {
+        val recyclerView: RecyclerView = findViewById(R.id.mainRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
         GlobalScope.launch {
-            val items = listOf(
-                ItemModel(imageId = R.drawable.ic_launcher_background, itemName = "Item 1", itemPrice = 10),
-                ItemModel(imageId = R.drawable.ic_launcher_background, itemName = "Item 2", itemPrice = 20),
-                ItemModel(imageId = R.drawable.ic_launcher_background, itemName = "Item 3", itemPrice = 30)
-            )
-            val order1 = OrderModel(orderId = 0, orderDate = Date(), totalAmount = 60.0, items = items)
-            databaseHandler.addOrder(order1)
-
-            val orders = databaseHandler.getAllOrders()
-
-            // Log the retrieved data for debugging purposes
-            orders.forEach { order ->
-                println("Order ID: ${order.orderId}, Date: ${order.orderDate}, Total Amount: ${order.totalAmount}")
-                order.items.forEach { item ->
-                    println("  Item Name: ${item.itemName}, Price: ${item.itemPrice}")
+            try {
+                val orders = dbHandler.getAllOrders()
+                val items = orders.flatMap { it.items }
+                runOnUiThread {
+                    recyclerView.adapter = MainAdapter(items)
                 }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error setting up RecyclerView", e)
             }
         }
     }

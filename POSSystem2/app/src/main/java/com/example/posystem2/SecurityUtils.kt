@@ -8,7 +8,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import java.security.MessageDigest
-import java.util.Base64
+import android.util.Base64
 
 object SecurityUtils {
 
@@ -50,11 +50,11 @@ object SecurityUtils {
         cipher.init(Cipher.ENCRYPT_MODE, getSecretKey())
         val encryptionIv = cipher.iv
         val encryptedData = cipher.doFinal(data.toByteArray(Charsets.UTF_8))
-        return Base64.getEncoder().encodeToString(encryptionIv + encryptedData)
+        return Base64.encodeToString(encryptionIv + encryptedData, Base64.DEFAULT)
     }
 
     fun decrypt(data: String): String {
-        val dataBytes = Base64.getDecoder().decode(data)
+        val dataBytes = Base64.decode(data, Base64.DEFAULT)
         val encryptionIv = dataBytes.sliceArray(0 until 12)
         val encryptedData = dataBytes.sliceArray(12 until dataBytes.size)
         val cipher = Cipher.getInstance(TRANSFORMATION)
@@ -67,6 +67,6 @@ object SecurityUtils {
     fun hash(data: String): String {
         val messageDigest = MessageDigest.getInstance("SHA-256")
         val hashBytes = messageDigest.digest(data.toByteArray(Charsets.UTF_8))
-        return Base64.getEncoder().encodeToString(hashBytes)
+        return Base64.encodeToString(hashBytes, Base64.DEFAULT)
     }
 }

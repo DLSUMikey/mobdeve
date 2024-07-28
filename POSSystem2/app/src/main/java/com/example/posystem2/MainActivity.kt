@@ -13,7 +13,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import androidx.appcompat.app.ActionBarDrawerToggle
-import kotlinx.coroutines.GlobalScope
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -28,12 +28,17 @@ class MainActivity : AppCompatActivity() {
 
         dbHandler = DatabaseHandler(this)
 
-        // Add dummy profiles
-        GlobalScope.launch {
+        // Add dummy profiles and items
+        lifecycleScope.launch {
             try {
-                dbHandler.addDummyProfiles()
+                if (dbHandler.getAllProfiles().isEmpty()) {
+                    dbHandler.addDummyProfiles()
+                }
+                if (dbHandler.getAllItems().isEmpty()) {  // Updated check for items
+                    dbHandler.addDummyItems()
+                }
             } catch (e: Exception) {
-                Log.e("MainActivity", "Error adding dummy profiles", e)
+                Log.e("MainActivity", "Error adding dummy profiles or items", e)
             }
         }
 
@@ -57,7 +62,7 @@ class MainActivity : AppCompatActivity() {
             val email = findViewById<EditText>(R.id.editTextEmail).text.toString()
             val password = findViewById<EditText>(R.id.editTextPass).text.toString()
 
-            GlobalScope.launch {
+            lifecycleScope.launch {
                 try {
                     val isValid = dbHandler.validateLogin(email, password)
                     runOnUiThread {
@@ -80,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             val email = findViewById<EditText>(R.id.editTextEmail).text.toString()
             val password = findViewById<EditText>(R.id.editTextPass).text.toString()
 
-            GlobalScope.launch {
+            lifecycleScope.launch {
                 try {
                     val existingProfile = dbHandler.getProfileByEmail(email)
                     runOnUiThread {
@@ -130,7 +135,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.mainRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        GlobalScope.launch {
+        lifecycleScope.launch {
             try {
                 val orders = dbHandler.getAllOrders()
                 val items = orders.flatMap { it.items }

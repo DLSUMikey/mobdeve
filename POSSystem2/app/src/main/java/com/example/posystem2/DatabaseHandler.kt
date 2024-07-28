@@ -87,23 +87,28 @@ class DatabaseHandler(context: Context) {
             ProfileModel(0, "jane.smith@example.com", BCrypt.withDefaults().hashToString(12, "password456".toCharArray())),
             ProfileModel(0, "mike.jones@example.com", BCrypt.withDefaults().hashToString(12, "password789".toCharArray()))
         )
+
         profiles.forEach { profile ->
-            addProfile(profile)
+            addProfile(profile, shouldHashPassword = false)
         }
     }
 
-
-    fun addProfile(profile: ProfileModel): Long {
+    fun addProfile(profile: ProfileModel, shouldHashPassword: Boolean = true): Long {
         val db = dbHelper.writableDatabase
-        val hashedPassword = BCrypt.withDefaults().hashToString(12, profile.password.toCharArray())
+        val passwordToStore = if (shouldHashPassword) {
+            BCrypt.withDefaults().hashToString(12, profile.password.toCharArray())
+        } else {
+            profile.password
+        }
         val values = ContentValues().apply {
             put(DbReferences.COLUMN_EMAIL, profile.email)
-            put(DbReferences.COLUMN_PASSWORD, hashedPassword)
+            put(DbReferences.COLUMN_PASSWORD, passwordToStore)
         }
         val profileId = db.insert(DbReferences.TABLE_PROFILE, null, values)
         db.close()
         return profileId
     }
+
 
     fun getProfileByEmail(email: String): ProfileModel? {
         val db = dbHelper.readableDatabase
@@ -195,6 +200,38 @@ class DatabaseHandler(context: Context) {
             false
         }
     }
+
+    fun addDummyItems() {
+        val existingItems = getAllItems()
+        if (existingItems.isEmpty()) {
+            val items = listOf(
+                ItemModel(1, "Item 1", 10),
+                ItemModel(2, "Item 2", 20),
+                ItemModel(3, "Item 3", 30)
+            )
+            items.forEach { item ->
+                addItem(0, item) // Assuming orderId 0 for dummy items
+            }
+        }
+    }
+
+    fun getAllItems(): List<ItemModel> {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(DbReferences.TABLE_ITEMS, null, null, null, null, null, null)
+        val items = mutableListOf<ItemModel>()
+        while (cursor.moveToNext()) {
+            val item = ItemModel(
+                imageId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_ID)),
+                itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
+                itemPrice = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE))
+            )
+            items.add(item)
+        }
+        cursor.close()
+        db.close()
+        return items
+    }
+
 
 }
 

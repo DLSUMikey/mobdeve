@@ -2,8 +2,6 @@ package com.example.posystem2
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
-import android.database.sqlite.SQLiteException
 import at.favre.lib.crypto.bcrypt.BCrypt
 import java.util.Date
 
@@ -19,19 +17,19 @@ class DatabaseHandler(context: Context) {
         }
         val orderId = db.insert(DbReferences.TABLE_ORDERS, null, values)
         order.items.forEach { item ->
-            addItem(orderId.toInt(), item)
+            addItem(item)
         }
         db.close()
         return orderId
     }
 
-    private fun addItem(orderId: Int, item: ItemModel): Long {
+    private fun addItem(item: ItemModel): Long {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
+            put(DbReferences.COLUMN_ORDER_ID_FK, item.orderId)
             put(DbReferences.COLUMN_IMAGE_ID, item.imageId)
             put(DbReferences.COLUMN_ITEM_NAME, item.itemName)
             put(DbReferences.COLUMN_ITEM_PRICE, item.itemPrice)
-            put(DbReferences.COLUMN_ORDER_ID_FK, orderId)
         }
         val itemId = db.insert(DbReferences.TABLE_ITEMS, null, values)
         db.close()
@@ -44,10 +42,8 @@ class DatabaseHandler(context: Context) {
         val orders = mutableListOf<OrderModel>()
         while (cursor.moveToNext()) {
             val orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID))
-            val orderDate =
-                Date(cursor.getLong(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_DATE)))
-            val totalAmount =
-                cursor.getDouble(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_TOTAL_AMOUNT))
+            val orderDate = Date(cursor.getLong(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_DATE)))
+            val totalAmount = cursor.getDouble(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_TOTAL_AMOUNT))
             val items = getItemsByOrderId(orderId)
             orders.add(OrderModel(orderId, orderDate, totalAmount, items))
         }
@@ -70,6 +66,7 @@ class DatabaseHandler(context: Context) {
         val items = mutableListOf<ItemModel>()
         while (cursor.moveToNext()) {
             val item = ItemModel(
+                orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID_FK)),
                 imageId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_ID)),
                 itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
                 itemPrice = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE))
@@ -80,6 +77,7 @@ class DatabaseHandler(context: Context) {
         db.close()
         return items
     }
+
 
     fun addDummyProfiles() {
         val profiles = listOf(
@@ -204,14 +202,25 @@ class DatabaseHandler(context: Context) {
     fun addDummyItems() {
         val existingItems = getAllItems()
         if (existingItems.isEmpty()) {
+            val db = dbHelper.writableDatabase
+
+            // Create a new order
+            val orderValues = ContentValues().apply {
+                put(DbReferences.COLUMN_ORDER_DATE, Date().time)
+                put(DbReferences.COLUMN_TOTAL_AMOUNT, 60.0)
+            }
+            val orderId = db.insert(DbReferences.TABLE_ORDERS, null, orderValues).toInt()
+
+            // Create dummy items and associate them with the order
             val items = listOf(
-                ItemModel(1, "Item 1", 10),
-                ItemModel(2, "Item 2", 20),
-                ItemModel(3, "Item 3", 30)
+                ItemModel(orderId, R.drawable.ic_launcher_background, "Item 1", 10),
+                ItemModel(orderId, R.drawable.ic_launcher_background, "Item 2", 20),
+                ItemModel(orderId, R.drawable.ic_launcher_background, "Item 3", 30)
             )
             items.forEach { item ->
-                addItem(0, item) // Assuming orderId 0 for dummy items
+                addItem(item)
             }
+            db.close()
         }
     }
 
@@ -221,6 +230,7 @@ class DatabaseHandler(context: Context) {
         val items = mutableListOf<ItemModel>()
         while (cursor.moveToNext()) {
             val item = ItemModel(
+                orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID_FK)),
                 imageId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_ID)),
                 itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
                 itemPrice = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE))

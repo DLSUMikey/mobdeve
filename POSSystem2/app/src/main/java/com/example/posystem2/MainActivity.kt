@@ -34,9 +34,10 @@ class MainActivity : AppCompatActivity() {
                 if (dbHandler.getAllProfiles().isEmpty()) {
                     dbHandler.addDummyProfiles()
                 }
-                if (dbHandler.getAllItems().isEmpty()) {  // Updated check for items
+                if (dbHandler.getAllItems().isEmpty()) { // Corrected check here
                     dbHandler.addDummyItems()
                 }
+                // We will set up the RecyclerView after switching to the main layout
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error adding dummy profiles or items", e)
             }
@@ -91,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                     runOnUiThread {
                         if (existingProfile == null) {
                             val profile = ProfileModel(0, email, password)
-                            dbHandler.addProfile(profile)
+                            dbHandler.addProfile(profile, shouldHashPassword = true) // Hash password for new accounts
                             switchToMainLayout()
                         } else {
                             Toast.makeText(this@MainActivity, "Email already registered", Toast.LENGTH_SHORT).show()
@@ -105,7 +106,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun switchToMainLayout() {
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main) // Set the correct layout
 
         window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
 
@@ -128,7 +129,7 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        setupRecyclerView()
+        setupRecyclerView() // Call setupRecyclerView after setting the correct layout
     }
 
     private fun setupRecyclerView() {
@@ -147,5 +148,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 }

@@ -1,7 +1,10 @@
 package com.example.posystem2
 
+import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -193,5 +196,43 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Error finalizing order", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_add_item -> {
+                showAddItemDialog()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showAddItemDialog() {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_add_item)
+        dialog.findViewById<Button>(R.id.btnAddItem).setOnClickListener {
+            val itemName = dialog.findViewById<EditText>(R.id.editTextItemName).text.toString()
+            val itemPrice = dialog.findViewById<EditText>(R.id.editTextItemPrice).text.toString().toInt()
+            val newItem = ItemModel(orderId = 0, imageId = R.drawable.ic_launcher_background, itemName = itemName, itemPrice = itemPrice)
+
+            lifecycleScope.launch {
+                try {
+                    dbHandler.addNewItem(newItem)
+                    setupRecyclerView()  // Refresh the RecyclerView
+                    dialog.dismiss()
+                    Toast.makeText(this@MainActivity, "Item added", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error adding item", e)
+                    Toast.makeText(this@MainActivity, "Error adding item", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        dialog.show()
     }
 }

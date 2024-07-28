@@ -36,6 +36,10 @@ class DatabaseHandler(context: Context) {
         return itemId
     }
 
+    fun addNewItem(item: ItemModel): Long {
+        return addItem(item)
+    }
+
     fun getAllOrders(): List<OrderModel> {
         val db = dbHelper.readableDatabase
         val cursor = db.query(DbReferences.TABLE_ORDERS, null, null, null, null, null, null)
@@ -78,7 +82,6 @@ class DatabaseHandler(context: Context) {
         return items
     }
 
-
     fun addDummyProfiles() {
         val profiles = listOf(
             ProfileModel(0, "john.doe@example.com", BCrypt.withDefaults().hashToString(12, "password123".toCharArray())),
@@ -106,7 +109,6 @@ class DatabaseHandler(context: Context) {
         db.close()
         return profileId
     }
-
 
     fun getProfileByEmail(email: String): ProfileModel? {
         val db = dbHelper.readableDatabase
@@ -241,8 +243,4 @@ class DatabaseHandler(context: Context) {
         db.close()
         return items
     }
-
-
 }
-
-

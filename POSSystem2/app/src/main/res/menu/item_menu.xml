@@ -5,5 +5,5 @@
         android:title="Edit" />
     <item
         android:id="@+id/action_add"
-        android:title="Add" />
+        android:title="Delete" />
 </menu>

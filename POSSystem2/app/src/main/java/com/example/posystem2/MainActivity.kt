@@ -15,7 +15,6 @@ import com.google.android.material.navigation.NavigationView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.Date
 
 class MainActivity : AppCompatActivity() {
 
@@ -60,9 +59,9 @@ class MainActivity : AppCompatActivity() {
 
             GlobalScope.launch {
                 try {
-                    val profile = dbHandler.getProfileByEmail(email)
+                    val isValid = dbHandler.validateLogin(email, password)
                     runOnUiThread {
-                        if (profile != null && profile.password == password) {
+                        if (isValid) {
                             switchToMainLayout()
                         } else {
                             Toast.makeText(this@MainActivity, "Invalid email or password", Toast.LENGTH_SHORT).show()
@@ -143,4 +142,5 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 }

@@ -4,7 +4,9 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteException
+import at.favre.lib.crypto.bcrypt.BCrypt
 import java.util.Date
+
 
 class DatabaseHandler(context: Context) {
     private val dbHelper: MyDbHelper = MyDbHelper(context)
@@ -81,20 +83,22 @@ class DatabaseHandler(context: Context) {
 
     fun addDummyProfiles() {
         val profiles = listOf(
-            ProfileModel(0, "john.doe@example.com", "password123"),
-            ProfileModel(0, "jane.smith@example.com", "password456"),
-            ProfileModel(0, "mike.jones@example.com", "password789")
+            ProfileModel(0, "john.doe@example.com", BCrypt.withDefaults().hashToString(12, "password123".toCharArray())),
+            ProfileModel(0, "jane.smith@example.com", BCrypt.withDefaults().hashToString(12, "password456".toCharArray())),
+            ProfileModel(0, "mike.jones@example.com", BCrypt.withDefaults().hashToString(12, "password789".toCharArray()))
         )
         profiles.forEach { profile ->
             addProfile(profile)
         }
     }
 
+
     fun addProfile(profile: ProfileModel): Long {
         val db = dbHelper.writableDatabase
+        val hashedPassword = BCrypt.withDefaults().hashToString(12, profile.password.toCharArray())
         val values = ContentValues().apply {
             put(DbReferences.COLUMN_EMAIL, profile.email)
-            put(DbReferences.COLUMN_PASSWORD, profile.password)
+            put(DbReferences.COLUMN_PASSWORD, hashedPassword)
         }
         val profileId = db.insert(DbReferences.TABLE_PROFILE, null, values)
         db.close()
@@ -141,9 +145,10 @@ class DatabaseHandler(context: Context) {
 
     fun updateProfile(profile: ProfileModel): Int {
         val db = dbHelper.writableDatabase
+        val hashedPassword = BCrypt.withDefaults().hashToString(12, profile.password.toCharArray())
         val values = ContentValues().apply {
             put(DbReferences.COLUMN_EMAIL, profile.email)
-            put(DbReferences.COLUMN_PASSWORD, profile.password)
+            put(DbReferences.COLUMN_PASSWORD, hashedPassword)
         }
         val rowsUpdated = db.update(
             DbReferences.TABLE_PROFILE,
@@ -165,5 +170,32 @@ class DatabaseHandler(context: Context) {
         db.close()
         return rowsDeleted
     }
+
+    fun validateLogin(email: String, password: String): Boolean {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            DbReferences.TABLE_PROFILE,
+            arrayOf(DbReferences.COLUMN_PASSWORD),
+            "${DbReferences.COLUMN_EMAIL}=?",
+            arrayOf(email),
+            null,
+            null,
+            null
+        )
+
+        return if (cursor.moveToFirst()) {
+            val storedHash = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PASSWORD))
+            val result = BCrypt.verifyer().verify(password.toCharArray(), storedHash)
+            cursor.close()
+            db.close()
+            result.verified
+        } else {
+            cursor.close()
+            db.close()
+            false
+        }
+    }
+
 }
+
 

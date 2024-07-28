@@ -15,12 +15,14 @@ import com.google.android.material.navigation.NavigationView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import java.util.Date
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var dbHandler: DatabaseHandler
+    private val currentOrderItems = mutableListOf<ItemModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,10 +36,10 @@ class MainActivity : AppCompatActivity() {
                 if (dbHandler.getAllProfiles().isEmpty()) {
                     dbHandler.addDummyProfiles()
                 }
-                if (dbHandler.getAllItems().isEmpty()) { // Corrected check here
+                if (dbHandler.getAllItems().isEmpty()) {
                     dbHandler.addDummyItems()
                 }
-                // We will set up the RecyclerView after switching to the main layout
+                setupRecyclerView()  // Ensure RecyclerView is set up after adding dummy data
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error adding dummy profiles or items", e)
             }
@@ -138,13 +140,57 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val orders = dbHandler.getAllOrders()
-                val items = orders.flatMap { it.items }
+                val items = dbHandler.getAllItems()
                 runOnUiThread {
-                    recyclerView.adapter = MainAdapter(items)
+                    recyclerView.adapter = MainAdapter(items) { action, item ->
+                        handleItemMenuAction(action, item)
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error setting up RecyclerView", e)
+            }
+        }
+    }
+
+    private fun handleItemMenuAction(action: MainAdapter.MenuAction, item: ItemModel) {
+        when (action) {
+            MainAdapter.MenuAction.EDIT -> {
+                // Handle edit action
+                Toast.makeText(this, "Edit ${item.itemName}", Toast.LENGTH_SHORT).show()
+            }
+            MainAdapter.MenuAction.ADD -> {
+                // Handle add to order action
+                addToOrder(item)
+            }
+        }
+    }
+
+    private fun addToOrder(item: ItemModel) {
+        currentOrderItems.add(item)
+        Toast.makeText(this, "${item.itemName} added to order", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun finalizeOrder() {
+        if (currentOrderItems.isEmpty()) {
+            Toast.makeText(this, "No items in the order", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val order = OrderModel(
+            orderId = 0,
+            orderDate = Date(),
+            totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() },
+            items = currentOrderItems
+        )
+
+        lifecycleScope.launch {
+            try {
+                dbHandler.addOrder(order)
+                currentOrderItems.clear()
+                Toast.makeText(this@MainActivity, "Order finalized", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error finalizing order", e)
+                Toast.makeText(this@MainActivity, "Error finalizing order", Toast.LENGTH_SHORT).show()
             }
         }
     }

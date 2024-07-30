@@ -1,6 +1,7 @@
 package com.example.posystem2
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -8,6 +9,8 @@ import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,6 +29,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var dbHandler: DatabaseHandler
     private val currentOrderItems = mutableListOf<ItemModel>()
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: MainAdapter
+
+    private val addItemActivityResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            refreshItems()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -183,11 +195,12 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val items = dbHandler.getAllItems()
+                val items = dbHandler.getAllItems().toMutableList()
                 runOnUiThread {
-                    recyclerView.adapter = MainAdapter(items) { action, item ->
+                    adapter = MainAdapter(items) { action, item ->
                         handleItemMenuAction(action, item)
                     }
+                    recyclerView.adapter = adapter
                 }
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error setting up Item RecyclerView", e)
@@ -215,14 +228,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun refreshItems() {
+        lifecycleScope.launch {
+            try {
+                val items = dbHandler.getAllItems()
+                runOnUiThread {
+                    adapter.updateItems(items)
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error refreshing items", e)
+            }
+        }
+    }
+
     private fun handleItemMenuAction(action: MainAdapter.MenuAction, item: ItemModel) {
         when (action) {
             MainAdapter.MenuAction.EDIT -> {
-                // Handle edit action
-                Toast.makeText(this, "Edit ${item.itemName}", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, AddItemActivity::class.java).apply {
+                    putExtra("itemId", item.orderId)
+                    putExtra("itemName", item.itemName)
+                    putExtra("itemPrice", item.itemPrice)
+                    putExtra("imageId", item.imageId)
+                }
+                addItemActivityResultLauncher.launch(intent)
             }
             MainAdapter.MenuAction.ADD -> {
-                // Handle add to order action
                 addToOrder(item)
             }
         }
@@ -266,33 +296,11 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_add_item -> {
-                showAddItemDialog()
+                val intent = Intent(this, AddItemActivity::class.java)
+                addItemActivityResultLauncher.launch(intent)
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    private fun showAddItemDialog() {
-        val dialog = Dialog(this)
-        dialog.setContentView(R.layout.dialog_add_item)
-        dialog.findViewById<Button>(R.id.btnAddItem).setOnClickListener {
-            val itemName = dialog.findViewById<EditText>(R.id.editTextItemName).text.toString()
-            val itemPrice = dialog.findViewById<EditText>(R.id.editTextItemPrice).text.toString().toInt()
-            val newItem = ItemModel(orderId = 0, imageId = R.drawable.ic_launcher_background, itemName = itemName, itemPrice = itemPrice)
-
-            lifecycleScope.launch {
-                try {
-                    dbHandler.addNewItem(newItem)
-                    setupItemRecyclerView()  // Refresh the RecyclerView
-                    dialog.dismiss()
-                    Toast.makeText(this@MainActivity, "Item added", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Log.e("MainActivity", "Error adding item", e)
-                    Toast.makeText(this@MainActivity, "Error adding item", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-        dialog.show()
     }
 }

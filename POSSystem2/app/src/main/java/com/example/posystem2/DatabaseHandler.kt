@@ -5,7 +5,6 @@ import android.content.Context
 import at.favre.lib.crypto.bcrypt.BCrypt
 import java.util.Date
 
-
 class DatabaseHandler(context: Context) {
     private val dbHelper: MyDbHelper = MyDbHelper(context)
 
@@ -27,7 +26,7 @@ class DatabaseHandler(context: Context) {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
             put(DbReferences.COLUMN_ORDER_ID_FK, item.orderId)
-            put(DbReferences.COLUMN_IMAGE_ID, item.imageId)
+            put(DbReferences.COLUMN_IMAGE_URI, item.imageUri)
             put(DbReferences.COLUMN_ITEM_NAME, item.itemName)
             put(DbReferences.COLUMN_ITEM_PRICE, item.itemPrice)
         }
@@ -38,6 +37,23 @@ class DatabaseHandler(context: Context) {
 
     fun addNewItem(item: ItemModel): Long {
         return addItem(item)
+    }
+
+    fun updateItem(item: ItemModel): Int {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put(DbReferences.COLUMN_IMAGE_URI, item.imageUri)
+            put(DbReferences.COLUMN_ITEM_NAME, item.itemName)
+            put(DbReferences.COLUMN_ITEM_PRICE, item.itemPrice)
+        }
+        val rowsUpdated = db.update(
+            DbReferences.TABLE_ITEMS,
+            values,
+            "${DbReferences.COLUMN_ORDER_ID_FK}=?",
+            arrayOf(item.orderId.toString())
+        )
+        db.close()
+        return rowsUpdated
     }
 
     fun getAllOrders(): List<OrderModel> {
@@ -71,7 +87,7 @@ class DatabaseHandler(context: Context) {
         while (cursor.moveToNext()) {
             val item = ItemModel(
                 orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID_FK)),
-                imageId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_ID)),
+                imageUri = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_URI)),
                 itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
                 itemPrice = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE))
             )
@@ -215,9 +231,9 @@ class DatabaseHandler(context: Context) {
 
             // Create dummy items and associate them with the order
             val items = listOf(
-                ItemModel(orderId, R.drawable.ic_launcher_background, "Item 1", 10),
-                ItemModel(orderId, R.drawable.ic_launcher_background, "Item 2", 20),
-                ItemModel(orderId, R.drawable.ic_launcher_background, "Item 3", 30)
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 1", 10),
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 2", 20),
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 3", 30)
             )
             items.forEach { item ->
                 addItem(item)
@@ -233,7 +249,7 @@ class DatabaseHandler(context: Context) {
         while (cursor.moveToNext()) {
             val item = ItemModel(
                 orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID_FK)),
-                imageId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_ID)),
+                imageUri = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_URI)),
                 itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
                 itemPrice = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE))
             )

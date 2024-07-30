@@ -1,6 +1,5 @@
 package com.example.posystem2
 
-import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -190,7 +189,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupItemRecyclerView() {
-        val recyclerView: RecyclerView = findViewById(R.id.mainRecyclerView)
+        recyclerView = findViewById(R.id.mainRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         lifecycleScope.launch {
@@ -248,7 +247,7 @@ class MainActivity : AppCompatActivity() {
                     putExtra("itemId", item.orderId)
                     putExtra("itemName", item.itemName)
                     putExtra("itemPrice", item.itemPrice)
-                    putExtra("imageId", item.imageId)
+                    putExtra("imageUri", item.imageUri)
                 }
                 addItemActivityResultLauncher.launch(intent)
             }

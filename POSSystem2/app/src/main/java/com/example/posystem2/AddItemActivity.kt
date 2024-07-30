@@ -45,9 +45,10 @@ class AddItemActivity : AppCompatActivity() {
                 itemId = it.getIntExtra("itemId", -1)
                 viewBinding.editTextItemName.setText(it.getStringExtra("itemName"))
                 viewBinding.editTextItemPrice.setText(it.getIntExtra("itemPrice", 0).toString())
-                val imageId = it.getIntExtra("imageId", 0)
-                if (imageId != 0) {
-                    viewBinding.tempImageIv.setImageResource(imageId)
+                val imageUriString = it.getStringExtra("imageUri")
+                if (imageUriString != null) {
+                    imageUri = Uri.parse(imageUriString)
+                    Picasso.get().load(imageUri).into(viewBinding.tempImageIv)
                 }
             }
         }
@@ -63,7 +64,7 @@ class AddItemActivity : AppCompatActivity() {
             if (areFieldsComplete()) {
                 val newItem = ItemModel(
                     orderId = 0,
-                    imageId = 0, // Set your default drawable resource id or handle it according to your implementation
+                    imageUri = imageUri.toString(),
                     itemName = viewBinding.editTextItemName.text.toString(),
                     itemPrice = viewBinding.editTextItemPrice.text.toString().toInt()
                 )
@@ -75,6 +76,7 @@ class AddItemActivity : AppCompatActivity() {
                     dbHandler.addNewItem(newItem)
                 }
 
+                setResult(RESULT_OK)
                 finish()
             } else {
                 Toast.makeText(this, "Please fill up all fields", Toast.LENGTH_LONG).show()

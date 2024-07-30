@@ -227,8 +227,7 @@ class MainActivity : AppCompatActivity() {
                 val orders = dbHandler.getAllOrders()
                 runOnUiThread {
                     recyclerView.adapter = OrderAdapter(orders) { order ->
-                        // Handle order click
-                        Toast.makeText(this@MainActivity, "Clicked on order ${order.orderId}", Toast.LENGTH_SHORT).show()
+                        showOrderDetailsDialog(order)
                     }
                 }
             } catch (e: Exception) {
@@ -236,6 +235,55 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun showOrderDetailsDialog(order: OrderModel) {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.order_details)
+
+        val orderIdTextView: TextView = dialog.findViewById(R.id.orderIdDetailstv)
+        val orderDateTextView: TextView = dialog.findViewById(R.id.orderDateDetailstv)
+        val totalAmountTextView: TextView = dialog.findViewById(R.id.orderTotalDetailstv)
+        val orderStatusTextView: TextView = dialog.findViewById(R.id.orderStatusDetailstv)
+        val itemsRecyclerView: RecyclerView = dialog.findViewById(R.id.itemsRecyclerView)
+        val cancelOrderButton: Button = dialog.findViewById(R.id.cancelOrderButton)
+        val completeOrderButton: Button = dialog.findViewById(R.id.completeOrderButton)
+
+        orderIdTextView.text = "Order ID: ${order.orderId}"
+        orderDateTextView.text = "Date: ${order.orderDate}"
+        totalAmountTextView.text = "Total: $${order.totalAmount}"
+        orderStatusTextView.text = "Status: ${order.status}"
+
+        itemsRecyclerView.layoutManager = LinearLayoutManager(this)
+        itemsRecyclerView.adapter = CurrentOrderAdapter(order.items)
+
+        cancelOrderButton.setOnClickListener {
+            updateOrderStatus(order, "Cancelled")
+            refreshOrders()
+            dialog.dismiss()
+        }
+
+        completeOrderButton.setOnClickListener {
+            updateOrderStatus(order, "Completed")
+            refreshOrders()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun updateOrderStatus(order: OrderModel, newStatus: String) {
+        val updatedOrder = order.copy(status = newStatus)
+        lifecycleScope.launch {
+            try {
+                dbHandler.updateOrderStatus(updatedOrder)
+                Toast.makeText(this@MainActivity, "Order ${updatedOrder.orderId} $newStatus", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error updating order status", e)
+                Toast.makeText(this@MainActivity, "Error updating order status", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     private fun refreshItems() {
         lifecycleScope.launch {
@@ -258,7 +306,7 @@ class MainActivity : AppCompatActivity() {
                     val recyclerView: RecyclerView = findViewById(R.id.orderRecyclerView)
                     recyclerView.adapter = OrderAdapter(orders) { order ->
                         // Handle order click
-                        Toast.makeText(this@MainActivity, "Clicked on order ${order.orderId}", Toast.LENGTH_SHORT).show()
+                        showOrderDetailsDialog(order)
                     }
                 }
             } catch (e: Exception) {
@@ -266,6 +314,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
     private fun handleItemMenuAction(action: MainAdapter.MenuAction, item: ItemModel) {
         when (action) {
@@ -320,7 +369,8 @@ class MainActivity : AppCompatActivity() {
             orderId = 0,
             orderDate = Date(),
             totalAmount = totalAmount,
-            items = currentOrderItems.toList()
+            items = currentOrderItems.toList(),
+            status = "In Progress" // Default status
         )
 
         lifecycleScope.launch {
@@ -328,7 +378,6 @@ class MainActivity : AppCompatActivity() {
                 dbHandler.addOrder(order)
                 currentOrderItems.clear()
                 updateOrderSummary() // Reset the order summary
-                refreshOrders() // Refresh the orders menu
                 Toast.makeText(this@MainActivity, "Order finalized", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error finalizing order", e)

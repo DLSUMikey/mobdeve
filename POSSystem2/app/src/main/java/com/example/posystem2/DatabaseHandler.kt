@@ -3,6 +3,7 @@ package com.example.posystem2
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import at.favre.lib.crypto.bcrypt.BCrypt
 import java.util.Date
 
@@ -18,6 +19,7 @@ class DatabaseHandler(context: Context) {
             val values = ContentValues().apply {
                 put(DbReferences.COLUMN_ORDER_DATE, order.orderDate.time)
                 put(DbReferences.COLUMN_TOTAL_AMOUNT, order.totalAmount)
+                put(DbReferences.COLUMN_STATUS, order.status)  // Add status value
                 put(DbReferences.COLUMN_IS_DELETED, if (order.isDeleted) 1 else 0)
             }
             orderId = db.insert(DbReferences.TABLE_ORDERS, null, values)
@@ -29,13 +31,14 @@ class DatabaseHandler(context: Context) {
                 db.setTransactionSuccessful()
             }
         } catch (e: Exception) {
-            // Handle exception
+            Log.e("DatabaseHandler", "Error adding order", e)
         } finally {
             db.endTransaction()
             db.close()
         }
         return orderId
     }
+
 
     private fun addItemToOrder(item: ItemModel, db: SQLiteDatabase): Long {
         val values = ContentValues().apply {
@@ -103,8 +106,9 @@ class DatabaseHandler(context: Context) {
             val orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID))
             val orderDate = Date(cursor.getLong(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_DATE)))
             val totalAmount = cursor.getDouble(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_TOTAL_AMOUNT))
+            val status = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_STATUS)) ?: "In Progress" // Handle null status
             val items = getItemsByOrderId(orderId)
-            orders.add(OrderModel(orderId, orderDate, totalAmount, items))
+            orders.add(OrderModel(orderId, orderDate, totalAmount, items, status))
         }
         cursor.close()
         db.close()
@@ -129,8 +133,8 @@ class DatabaseHandler(context: Context) {
                 imageUri = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_URI)),
                 itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
                 itemPrice = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE)),
-                quantity = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_QUANTITY)),  // Fetch the quantity
-                ordered = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDERED)) == 1  // Fetch ordered status
+                quantity = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_QUANTITY)),
+                ordered = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDERED)) == 1
             )
             items.add(item)
         }
@@ -302,4 +306,20 @@ class DatabaseHandler(context: Context) {
         db.close()
         return items
     }
+
+    fun updateOrderStatus(order: OrderModel): Int {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put(DbReferences.COLUMN_STATUS, order.status)
+        }
+        val rowsUpdated = db.update(
+            DbReferences.TABLE_ORDERS,
+            values,
+            "${DbReferences.COLUMN_ORDER_ID}=?",
+            arrayOf(order.orderId.toString())
+        )
+        db.close()
+        return rowsUpdated
+    }
+
 }

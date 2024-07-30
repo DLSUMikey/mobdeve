@@ -7,10 +7,12 @@ data class OrderModel(
     val orderDate: Date,
     val totalAmount: Double,
     val items: List<ItemModel>,
+    val status: String, // New status field
     val isDeleted: Boolean = false
 ) {
     val totalQuantity: Int
         get() = items.sumBy { it.quantity }
 }
+
 
 

@@ -6,6 +6,7 @@ object DbReferences {
     const val COLUMN_ORDER_ID = "order_id"
     const val COLUMN_ORDER_DATE = "order_date"
     const val COLUMN_TOTAL_AMOUNT = "total_amount"
+    const val COLUMN_STATUS = "status"
     const val COLUMN_IS_DELETED = "is_deleted"
 
     const val TABLE_ITEMS = "items"
@@ -27,6 +28,7 @@ object DbReferences {
             $COLUMN_ORDER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COLUMN_ORDER_DATE TEXT,
             $COLUMN_TOTAL_AMOUNT REAL,
+            $COLUMN_STATUS TEXT, 
             $COLUMN_IS_DELETED INTEGER DEFAULT 0
         )
     """
@@ -39,7 +41,7 @@ object DbReferences {
             $COLUMN_ITEM_PRICE INTEGER,
             $COLUMN_ORDER_ID_FK INTEGER,
             $COLUMN_ORDERED INTEGER DEFAULT 0,
-            $COLUMN_QUANTITY INTEGER DEFAULT 1, 
+            $COLUMN_QUANTITY INTEGER DEFAULT 1,
             FOREIGN KEY($COLUMN_ORDER_ID_FK) REFERENCES $TABLE_ORDERS($COLUMN_ORDER_ID)
         )
     """

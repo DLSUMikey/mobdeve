@@ -1,11 +1,13 @@
 package com.example.posystem2
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.squareup.picasso.Picasso
 
 class MainAdapter(
     private var mList: MutableList<ItemModel>,
@@ -30,7 +32,8 @@ class MainAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = mList[position]
-        holder.imageView.setImageResource(item.imageId)
+        val imageUri = Uri.parse(item.imageUri)
+        Picasso.get().load(imageUri).into(holder.imageView)
         holder.textViewName.text = item.itemName
         holder.textViewPrice.text = item.itemPrice.toString()
         holder.itemView.setOnClickListener {

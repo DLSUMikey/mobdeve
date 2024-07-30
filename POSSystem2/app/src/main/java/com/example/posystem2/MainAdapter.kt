@@ -2,9 +2,11 @@ package com.example.posystem2
 
 import android.net.Uri
 import android.view.LayoutInflater
+import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
@@ -36,11 +38,9 @@ class MainAdapter(
         Picasso.get().load(imageUri).into(holder.imageView)
         holder.textViewName.text = item.itemName
         holder.textViewPrice.text = item.itemPrice.toString()
-        holder.itemView.setOnClickListener {
-            itemMenuClickListener(MenuAction.EDIT, item)
-        }
+
         holder.itemView.setOnLongClickListener {
-            itemMenuClickListener(MenuAction.ADD, item)
+            showPopupMenu(it, item)
             true
         }
     }
@@ -53,5 +53,25 @@ class MainAdapter(
         mList.clear()
         mList.addAll(newItems)
         notifyDataSetChanged()
+    }
+
+    private fun showPopupMenu(view: View, item: ItemModel) {
+        val popup = PopupMenu(view.context, view)
+        val inflater: MenuInflater = popup.menuInflater
+        inflater.inflate(R.menu.item_menu, popup.menu)
+        popup.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_edit -> {
+                    itemMenuClickListener(MenuAction.EDIT, item)
+                    true
+                }
+                R.id.action_add -> {
+                    itemMenuClickListener(MenuAction.ADD, item)
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
     }
 }

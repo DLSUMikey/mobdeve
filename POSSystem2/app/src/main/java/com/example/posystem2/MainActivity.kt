@@ -168,7 +168,6 @@ class MainActivity : AppCompatActivity() {
         setupOrderRecyclerView() // Set up orders RecyclerView in the order view layout
     }
 
-
     private fun setupNavigation() {
         val navigationView: NavigationView = findViewById(R.id.navigation_view)
         navigationView.setNavigationItemSelectedListener { item ->
@@ -185,8 +184,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
-
-
 
     private fun setupItemRecyclerView() {
         recyclerView = findViewById(R.id.mainRecyclerView)
@@ -206,7 +203,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun setupOrderRecyclerView() {
         val recyclerView: RecyclerView = findViewById(R.id.orderRecyclerView)

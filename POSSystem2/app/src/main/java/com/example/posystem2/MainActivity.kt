@@ -250,6 +250,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun refreshOrders() {
+        lifecycleScope.launch {
+            try {
+                val orders = dbHandler.getAllOrders()
+                runOnUiThread {
+                    val recyclerView: RecyclerView = findViewById(R.id.orderRecyclerView)
+                    recyclerView.adapter = OrderAdapter(orders) { order ->
+                        // Handle order click
+                        Toast.makeText(this@MainActivity, "Clicked on order ${order.orderId}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error refreshing orders", e)
+            }
+        }
+    }
+
     private fun handleItemMenuAction(action: MainAdapter.MenuAction, item: ItemModel) {
         when (action) {
             MainAdapter.MenuAction.EDIT -> {
@@ -268,21 +285,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addToOrder(item: ItemModel) {
-        currentOrderItems.add(item)
+        val existingItem = currentOrderItems.find { it.itemName == item.itemName }
+        if (existingItem != null) {
+            existingItem.quantity += 1
+        } else {
+            currentOrderItems.add(item.copy(quantity = 1))
+        }
         Toast.makeText(this, "${item.itemName} added to order", Toast.LENGTH_SHORT).show()
         updateOrderSummary()
     }
 
     private fun updateOrderSummary() {
-        val totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() }
-        val itemCount = currentOrderItems.size
+        val totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() * it.quantity }
+        val itemCount = currentOrderItems.sumBy { it.quantity }
 
-        val totalPriceTextView: TextView = findViewById(R.id.totalPriceTextView)
-        val itemCountTextView: TextView = findViewById(R.id.itemCountTextView)
+        val totalPriceTextView: TextView? = findViewById(R.id.totalPriceTextView)
+        val itemCountTextView: TextView? = findViewById(R.id.itemCountTextView)
 
-        totalPriceTextView.text = "Total Price: $$totalAmount"
-        itemCountTextView.text = "Items: $itemCount"
+        totalPriceTextView?.text = "Total Price: $$totalAmount"
+        itemCountTextView?.text = "Items: $itemCount"
     }
+
+
+
 
     private fun finalizeOrder() {
         if (currentOrderItems.isEmpty()) {
@@ -290,19 +315,21 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        val totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() * it.quantity }
         val order = OrderModel(
             orderId = 0,
             orderDate = Date(),
-            totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() },
-            items = currentOrderItems
+            totalAmount = totalAmount,
+            items = currentOrderItems.toList()
         )
 
         lifecycleScope.launch {
             try {
                 dbHandler.addOrder(order)
                 currentOrderItems.clear()
+                updateOrderSummary() // Reset the order summary
+                refreshOrders() // Refresh the orders menu
                 Toast.makeText(this@MainActivity, "Order finalized", Toast.LENGTH_SHORT).show()
-                updateOrderSummary()
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error finalizing order", e)
                 Toast.makeText(this@MainActivity, "Error finalizing order", Toast.LENGTH_SHORT).show()
@@ -310,25 +337,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun aggregateItems(items: List<ItemModel>): List<ItemModel> {
+        val itemMap = mutableMapOf<String, ItemModel>()
+        items.forEach { item ->
+            if (itemMap.containsKey(item.itemName)) {
+                val existingItem = itemMap[item.itemName]!!
+                existingItem.quantity += item.quantity
+            } else {
+                itemMap[item.itemName] = item.copy()
+            }
+        }
+        return itemMap.values.toList()
+    }
 
     private fun showCurrentOrderDialog() {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_current_order)
 
+        val aggregatedItems = aggregateItems(currentOrderItems)
         val recyclerView: RecyclerView = dialog.findViewById(R.id.currentOrderRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = MainAdapter(currentOrderItems.toMutableList()) { action, item ->
-            handleItemMenuAction(action, item)
-        }
+        recyclerView.adapter = CurrentOrderAdapter(aggregatedItems)
 
-        val totalPriceTextView: TextView = dialog.findViewById(R.id.currentOrderTotalPrice)
-        val itemCountTextView: TextView = dialog.findViewById(R.id.currentOrderItemCount)
+        val totalPriceTextView: TextView = dialog.findViewById(R.id.totalPriceTextView)
+        val itemCountTextView: TextView = dialog.findViewById(R.id.itemCountTextView)
 
-        totalPriceTextView.text = "Total Price: $${currentOrderItems.sumOf { it.itemPrice.toDouble() }}"
-        itemCountTextView.text = "Items: ${currentOrderItems.size}"
+        val totalAmount = aggregatedItems.sumOf { it.itemPrice.toDouble() * it.quantity }
+        val itemCount = aggregatedItems.sumBy { it.quantity }
+
+        totalPriceTextView.text = "Total Price: $$totalAmount"
+        itemCountTextView.text = "Items: $itemCount"
 
         dialog.show()
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)

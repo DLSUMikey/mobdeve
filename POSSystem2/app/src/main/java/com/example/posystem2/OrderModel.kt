@@ -8,6 +8,9 @@ data class OrderModel(
     val totalAmount: Double,
     val items: List<ItemModel>,
     val isDeleted: Boolean = false
-)
+) {
+    val totalQuantity: Int
+        get() = items.sumBy { it.quantity }
+}
 
 

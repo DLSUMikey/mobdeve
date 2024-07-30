@@ -5,7 +5,9 @@ data class ItemModel(
     val imageUri: String,
     val itemName: String,
     val itemPrice: Int,
-    val ordered: Boolean = false
+    var quantity: Int = 1,  // New field to mark the quantity of the item
+    val ordered: Boolean = false  // Field to mark if the item is part of an order
 )
+
 
 

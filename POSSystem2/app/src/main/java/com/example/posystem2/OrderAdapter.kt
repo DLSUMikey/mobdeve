@@ -15,6 +15,7 @@ class OrderAdapter(
         val orderId: TextView = view.findViewById(R.id.orderIdtv)
         val orderDate: TextView = view.findViewById(R.id.orderDatetv)
         val totalAmount: TextView = view.findViewById(R.id.orderTotaltv)
+        val orderQty: TextView = view.findViewById(R.id.orderQtytv) // New TextView for total quantity
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
@@ -28,6 +29,7 @@ class OrderAdapter(
         holder.orderId.text = "Order ID: ${order.orderId}"
         holder.orderDate.text = "Date: ${order.orderDate}"
         holder.totalAmount.text = "Total: $${order.totalAmount}"
+        holder.orderQty.text = "Qty: ${order.totalQuantity}" // Display total quantity
 
         holder.itemView.setOnClickListener { itemClickListener(order) }
     }

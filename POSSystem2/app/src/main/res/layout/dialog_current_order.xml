@@ -18,14 +18,16 @@
         android:layout_height="wrap_content" />
 
     <TextView
-        android:id="@+id/currentOrderTotalPrice"
+        android:id="@+id/totalPriceTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Total Price: $0.00" />
+        android:text="Total Price: $0.00"
+        android:layout_marginTop="16dp" />
 
     <TextView
-        android:id="@+id/currentOrderItemCount"
+        android:id="@+id/itemCountTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Items: 0" />
+        android:text="Items: 0"
+        android:layout_marginTop="4dp" />
 </LinearLayout>

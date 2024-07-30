@@ -44,6 +44,7 @@ class DatabaseHandler(context: Context) {
             put(DbReferences.COLUMN_ITEM_NAME, item.itemName)
             put(DbReferences.COLUMN_ITEM_PRICE, item.itemPrice)
             put(DbReferences.COLUMN_ORDERED, 1)  // Mark the item as ordered
+            put(DbReferences.COLUMN_QUANTITY, item.quantity)  // Set the quantity
         }
         return db.insert(DbReferences.TABLE_ITEMS, null, values)
     }
@@ -62,6 +63,7 @@ class DatabaseHandler(context: Context) {
             put(DbReferences.COLUMN_ITEM_NAME, item.itemName)
             put(DbReferences.COLUMN_ITEM_PRICE, item.itemPrice)
             put(DbReferences.COLUMN_ORDERED, 0)  // Ensure new items are marked as not ordered
+            put(DbReferences.COLUMN_QUANTITY, item.quantity)  // Set the quantity
         }
         return db.insert(DbReferences.TABLE_ITEMS, null, values)
     }
@@ -73,6 +75,7 @@ class DatabaseHandler(context: Context) {
             put(DbReferences.COLUMN_ITEM_NAME, item.itemName)
             put(DbReferences.COLUMN_ITEM_PRICE, item.itemPrice)
             put(DbReferences.COLUMN_ORDERED, if (item.ordered) 1 else 0)  // Update the ordered status
+            put(DbReferences.COLUMN_QUANTITY, item.quantity)  // Update the quantity
         }
         val rowsUpdated = db.update(
             DbReferences.TABLE_ITEMS,
@@ -126,6 +129,7 @@ class DatabaseHandler(context: Context) {
                 imageUri = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_URI)),
                 itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
                 itemPrice = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE)),
+                quantity = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_QUANTITY)),  // Fetch the quantity
                 ordered = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDERED)) == 1  // Fetch ordered status
             )
             items.add(item)
@@ -268,9 +272,9 @@ class DatabaseHandler(context: Context) {
 
             // Create dummy items and associate them with the order
             val items = listOf(
-                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 1", 10),
-                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 2", 20),
-                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 3", 30)
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 1", 10, 1),
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 2", 20, 1),
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 3", 30, 1)
             )
             items.forEach { item ->
                 addItem(item, db)
@@ -289,6 +293,7 @@ class DatabaseHandler(context: Context) {
                 imageUri = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_URI)),
                 itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
                 itemPrice = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE)),
+                quantity = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_QUANTITY)),  // Fetch the quantity
                 ordered = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDERED)) == 1
             )
             items.add(item)

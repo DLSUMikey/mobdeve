@@ -9,7 +9,7 @@ object DbReferences {
 
     const val TABLE_ITEMS = "items"
     const val COLUMN_ITEM_ID = "item_id"
-    const val COLUMN_IMAGE_ID = "image_id"
+    const val COLUMN_IMAGE_URI = "image_uri"
     const val COLUMN_ITEM_NAME = "item_name"
     const val COLUMN_ITEM_PRICE = "item_price"
     const val COLUMN_ORDER_ID_FK = "order_id_fk"
@@ -30,7 +30,7 @@ object DbReferences {
     const val CREATE_ITEMS_TABLE = """
         CREATE TABLE IF NOT EXISTS $TABLE_ITEMS (
             $COLUMN_ITEM_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            $COLUMN_IMAGE_ID INTEGER,
+            $COLUMN_IMAGE_URI TEXT,
             $COLUMN_ITEM_NAME TEXT,
             $COLUMN_ITEM_PRICE INTEGER,
             $COLUMN_ORDER_ID_FK INTEGER,

@@ -63,7 +63,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupLogin() {
+        val backBtn: Button = findViewById(R.id.backBtn)
         val loginBtn2: Button = findViewById(R.id.loginBtn2)
+        backBtn.setOnClickListener {
+            setContentView(R.layout.title_view)
+        }
         loginBtn2.setOnClickListener {
             val email = findViewById<EditText>(R.id.editTextEmail).text.toString()
             val password = findViewById<EditText>(R.id.editTextPass).text.toString()
@@ -87,6 +91,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupRegistration() {
         val registerBtn2: Button = findViewById(R.id.registerBtn2)
+        val backBtn: Button = findViewById(R.id.backBtn)
+        backBtn.setOnClickListener {
+            setContentView(R.layout.title_view)
+        }
         registerBtn2.setOnClickListener {
             val email = findViewById<EditText>(R.id.editTextEmail).text.toString()
             val password = findViewById<EditText>(R.id.editTextPass).text.toString()

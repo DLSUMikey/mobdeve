@@ -54,13 +54,29 @@
                 android:hint="Password"
                 android:inputType="textPassword" />
 
-            <Button
-                android:id="@+id/registerBtn2"
-                android:layout_width="200dp"
-                android:layout_height="70dp"
-                android:layout_marginTop="20dp"
-                android:layout_weight="1"
-                android:text="Register" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/backBtn"
+                    android:layout_width="100dp"
+                    android:layout_height="70dp"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_weight="1"
+                    android:text="Back" />
+
+                <Button
+                    android:id="@+id/registerBtn2"
+                    android:layout_width="100dp"
+                    android:layout_height="70dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginRight="40dp"
+                    android:layout_weight="1"
+                    android:text="Register" />
+            </LinearLayout>
 
         </LinearLayout>
 

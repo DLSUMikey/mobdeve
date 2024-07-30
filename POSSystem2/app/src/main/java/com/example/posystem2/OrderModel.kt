@@ -6,6 +6,7 @@ data class OrderModel(
     val orderId: Int,
     val orderDate: Date,
     val totalAmount: Double,
-    val items: List<ItemModel>
+    val items: List<ItemModel>,
+    val isDeleted: Boolean = false
 )
 

@@ -5,7 +5,6 @@ import android.content.Context
 import at.favre.lib.crypto.bcrypt.BCrypt
 import java.util.Date
 
-
 class DatabaseHandler(context: Context) {
     private val dbHelper: MyDbHelper = MyDbHelper(context)
 
@@ -38,6 +37,23 @@ class DatabaseHandler(context: Context) {
 
     fun addNewItem(item: ItemModel): Long {
         return addItem(item)
+    }
+
+    fun updateItem(item: ItemModel): Int {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put(DbReferences.COLUMN_IMAGE_ID, item.imageId)
+            put(DbReferences.COLUMN_ITEM_NAME, item.itemName)
+            put(DbReferences.COLUMN_ITEM_PRICE, item.itemPrice)
+        }
+        val rowsUpdated = db.update(
+            DbReferences.TABLE_ITEMS,
+            values,
+            "${DbReferences.COLUMN_ORDER_ID_FK}=?",
+            arrayOf(item.orderId.toString())
+        )
+        db.close()
+        return rowsUpdated
     }
 
     fun getAllOrders(): List<OrderModel> {

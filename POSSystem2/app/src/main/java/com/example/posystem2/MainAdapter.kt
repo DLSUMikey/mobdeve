@@ -24,6 +24,7 @@ class MainAdapter(
         val imageView: ImageView = itemView.findViewById(R.id.itemImageiv)
         val textViewName: TextView = itemView.findViewById(R.id.itemNametv)
         val textViewPrice: TextView = itemView.findViewById(R.id.priceTexttv)
+        val menuBtn: ImageView = itemView.findViewById(R.id.menuBtn) // Add reference to menuBtn
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -39,9 +40,8 @@ class MainAdapter(
         holder.textViewName.text = item.itemName
         holder.textViewPrice.text = item.itemPrice.toString()
 
-        holder.itemView.setOnLongClickListener {
-            showPopupMenu(it, item)
-            true
+        holder.menuBtn.setOnClickListener { // Set click listener for menuBtn
+            showPopupMenu(holder.menuBtn, item)
         }
     }
 
@@ -51,7 +51,7 @@ class MainAdapter(
 
     fun updateItems(newItems: List<ItemModel>) {
         mList.clear()
-        mList.addAll(newItems)
+        mList.addAll(newItems.filter { !it.ordered })  // Only add items that are not ordered
         notifyDataSetChanged()
     }
 
@@ -75,3 +75,4 @@ class MainAdapter(
         popup.show()
     }
 }
+

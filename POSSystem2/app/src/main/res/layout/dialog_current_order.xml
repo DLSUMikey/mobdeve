@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/currentOrderTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Current Order"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/currentOrderRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/currentOrderTotalPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total Price: $0.00" />
+
+    <TextView
+        android:id="@+id/currentOrderItemCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Items: 0" />
+</LinearLayout>

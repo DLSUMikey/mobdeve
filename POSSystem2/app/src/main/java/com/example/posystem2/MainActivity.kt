@@ -1,5 +1,6 @@
 package com.example.posystem2
 
+import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -7,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -149,6 +151,18 @@ class MainActivity : AppCompatActivity() {
 
         setupNavigation() // Call setupNavigation to handle navigation items
         setupItemRecyclerView() // Set up items RecyclerView in the main activity layout
+
+        val checkoutBtn: Button = findViewById(R.id.checkoutBtn)
+        checkoutBtn.setOnClickListener {
+            finalizeOrder()
+        }
+
+        val viewCurrentOrderBtn: Button = findViewById(R.id.viewCurrentOrderBtn)
+        viewCurrentOrderBtn.setOnClickListener {
+            showCurrentOrderDialog()
+        }
+
+        updateOrderSummary()
     }
 
     private fun switchToOrderView() {
@@ -256,6 +270,18 @@ class MainActivity : AppCompatActivity() {
     private fun addToOrder(item: ItemModel) {
         currentOrderItems.add(item)
         Toast.makeText(this, "${item.itemName} added to order", Toast.LENGTH_SHORT).show()
+        updateOrderSummary()
+    }
+
+    private fun updateOrderSummary() {
+        val totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() }
+        val itemCount = currentOrderItems.size
+
+        val totalPriceTextView: TextView = findViewById(R.id.totalPriceTextView)
+        val itemCountTextView: TextView = findViewById(R.id.itemCountTextView)
+
+        totalPriceTextView.text = "Total Price: $$totalAmount"
+        itemCountTextView.text = "Items: $itemCount"
     }
 
     private fun finalizeOrder() {
@@ -276,11 +302,32 @@ class MainActivity : AppCompatActivity() {
                 dbHandler.addOrder(order)
                 currentOrderItems.clear()
                 Toast.makeText(this@MainActivity, "Order finalized", Toast.LENGTH_SHORT).show()
+                updateOrderSummary()
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error finalizing order", e)
                 Toast.makeText(this@MainActivity, "Error finalizing order", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+
+    private fun showCurrentOrderDialog() {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_current_order)
+
+        val recyclerView: RecyclerView = dialog.findViewById(R.id.currentOrderRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = MainAdapter(currentOrderItems.toMutableList()) { action, item ->
+            handleItemMenuAction(action, item)
+        }
+
+        val totalPriceTextView: TextView = dialog.findViewById(R.id.currentOrderTotalPrice)
+        val itemCountTextView: TextView = dialog.findViewById(R.id.currentOrderItemCount)
+
+        totalPriceTextView.text = "Total Price: $${currentOrderItems.sumOf { it.itemPrice.toDouble() }}"
+        itemCountTextView.text = "Items: ${currentOrderItems.size}"
+
+        dialog.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

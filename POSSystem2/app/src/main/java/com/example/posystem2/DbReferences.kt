@@ -1,11 +1,12 @@
 object DbReferences {
-    const val DATABASE_VERSION = 1
+    const val DATABASE_VERSION = 3
     const val DATABASE_NAME = "posystem2.db"
 
     const val TABLE_ORDERS = "orders"
     const val COLUMN_ORDER_ID = "order_id"
     const val COLUMN_ORDER_DATE = "order_date"
     const val COLUMN_TOTAL_AMOUNT = "total_amount"
+    const val COLUMN_IS_DELETED = "is_deleted"  // New column to mark if the order is deleted
 
     const val TABLE_ITEMS = "items"
     const val COLUMN_ITEM_ID = "item_id"
@@ -13,6 +14,7 @@ object DbReferences {
     const val COLUMN_ITEM_NAME = "item_name"
     const val COLUMN_ITEM_PRICE = "item_price"
     const val COLUMN_ORDER_ID_FK = "order_id_fk"
+    const val COLUMN_ORDERED = "ordered"  // Column to mark if the item is part of an order
 
     const val TABLE_PROFILE = "profile"
     const val COLUMN_PROFILE_ID = "profile_id"
@@ -23,7 +25,8 @@ object DbReferences {
         CREATE TABLE IF NOT EXISTS $TABLE_ORDERS (
             $COLUMN_ORDER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COLUMN_ORDER_DATE TEXT,
-            $COLUMN_TOTAL_AMOUNT REAL
+            $COLUMN_TOTAL_AMOUNT REAL,
+            $COLUMN_IS_DELETED INTEGER DEFAULT 0
         )
     """
 
@@ -34,6 +37,7 @@ object DbReferences {
             $COLUMN_ITEM_NAME TEXT,
             $COLUMN_ITEM_PRICE INTEGER,
             $COLUMN_ORDER_ID_FK INTEGER,
+            $COLUMN_ORDERED INTEGER DEFAULT 0,
             FOREIGN KEY($COLUMN_ORDER_ID_FK) REFERENCES $TABLE_ORDERS($COLUMN_ORDER_ID)
         )
     """

@@ -42,7 +42,6 @@ class MainActivity : AppCompatActivity() {
                 if (dbHandler.getAllItems().isEmpty()) {
                     dbHandler.addDummyItems()
                 }
-                // setupRecyclerView() should be called only after switching to main layout
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error adding dummy profiles or items", e)
             }
@@ -137,21 +136,48 @@ class MainActivity : AppCompatActivity() {
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
+        setupNavigation() // Call setupNavigation to handle navigation items
+        setupItemRecyclerView() // Set up items RecyclerView in the main activity layout
+    }
+
+    private fun switchToOrderView() {
+        setContentView(R.layout.order_view) // Set the correct layout
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
+
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        drawerLayout = findViewById(R.id.drawer_layout)
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        setupNavigation() // Call setupNavigation to handle navigation items
+        setupOrderRecyclerView() // Set up orders RecyclerView in the order view layout
+    }
+
+
+    private fun setupNavigation() {
         val navigationView: NavigationView = findViewById(R.id.navigation_view)
         navigationView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home -> { /* Handle Home action */ }
-                R.id.nav_profile -> { /* Handle Profile action */ }
-                R.id.nav_settings -> { /* Handle Settings action */ }
+                R.id.nav_home -> {
+                    switchToMainLayout()
+                }
+                R.id.nav_orders -> {
+                    switchToOrderView() // Set up the orders view and toolbar
+                }
+                R.id.nav_statistics -> { /* Handle Statistics action */ }
             }
             drawerLayout.closeDrawers()
             true
         }
-
-        setupRecyclerView() // Call setupRecyclerView after setting the correct layout
     }
 
-    private fun setupRecyclerView() {
+
+
+    private fun setupItemRecyclerView() {
         val recyclerView: RecyclerView = findViewById(R.id.mainRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -164,7 +190,27 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             } catch (e: Exception) {
-                Log.e("MainActivity", "Error setting up RecyclerView", e)
+                Log.e("MainActivity", "Error setting up Item RecyclerView", e)
+            }
+        }
+    }
+
+
+    private fun setupOrderRecyclerView() {
+        val recyclerView: RecyclerView = findViewById(R.id.orderRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        lifecycleScope.launch {
+            try {
+                val orders = dbHandler.getAllOrders()
+                runOnUiThread {
+                    recyclerView.adapter = OrderAdapter(orders) { order ->
+                        // Handle order click
+                        Toast.makeText(this@MainActivity, "Clicked on order ${order.orderId}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error setting up Order RecyclerView", e)
             }
         }
     }
@@ -238,7 +284,7 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 try {
                     dbHandler.addNewItem(newItem)
-                    setupRecyclerView()  // Refresh the RecyclerView
+                    setupItemRecyclerView()  // Refresh the RecyclerView
                     dialog.dismiss()
                     Toast.makeText(this@MainActivity, "Item added", Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {

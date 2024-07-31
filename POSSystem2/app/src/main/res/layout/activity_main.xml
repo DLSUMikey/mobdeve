@@ -35,39 +35,42 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="30dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <TextView
                 android:id="@+id/totalPriceTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Total Price: $0.00"
-                android:textSize="18sp"
-                android:padding="8dp" />
+                android:padding="8dp"
+                android:text="Total Price: ₱0.00"
+                android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/itemCountTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:padding="8dp"
                 android:text="Items: 0"
-                android:textSize="18sp"
-                android:padding="8dp" />
+                android:textSize="18sp" />
 
             <Button
                 android:id="@+id/checkoutBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Checkout"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="8dp"
+                android:text="Checkout" />
 
             <Button
                 android:id="@+id/viewCurrentOrderBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="View Current Order"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="8dp"
+                android:text="View Current Order" />
 
         </LinearLayout>
 

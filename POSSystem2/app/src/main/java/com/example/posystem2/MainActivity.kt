@@ -250,7 +250,7 @@ class MainActivity : AppCompatActivity() {
 
         orderIdTextView.text = "Order ID: ${order.orderId}"
         orderDateTextView.text = "Date: ${order.orderDate}"
-        totalAmountTextView.text = "Total: $${order.totalAmount}"
+        totalAmountTextView.text = "Total: ₱${order.totalAmount}"
         orderStatusTextView.text = "Status: ${order.status}"
 
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -351,7 +351,7 @@ class MainActivity : AppCompatActivity() {
         val totalPriceTextView: TextView? = findViewById(R.id.totalPriceTextView)
         val itemCountTextView: TextView? = findViewById(R.id.itemCountTextView)
 
-        totalPriceTextView?.text = "Total Price: $$totalAmount"
+        totalPriceTextView?.text = "Total Price: ₱$totalAmount"
         itemCountTextView?.text = "Items: $itemCount"
     }
 
@@ -414,7 +414,7 @@ class MainActivity : AppCompatActivity() {
         val totalAmount = aggregatedItems.sumOf { it.itemPrice.toDouble() * it.quantity }
         val itemCount = aggregatedItems.sumBy { it.quantity }
 
-        totalPriceTextView.text = "Total Price: $$totalAmount"
+        totalPriceTextView.text = "Total Price: ₱$totalAmount"
         itemCountTextView.text = "Items: $itemCount"
 
         dialog.show()

@@ -44,7 +44,7 @@ class AddItemActivity : AppCompatActivity() {
                 isEditing = true
                 itemId = it.getIntExtra("itemId", -1)
                 viewBinding.editTextItemName.setText(it.getStringExtra("itemName"))
-                viewBinding.editTextItemPrice.setText(it.getIntExtra("itemPrice", 0).toString())
+                viewBinding.editTextItemPrice.setText(it.getFloatExtra("itemPrice", 0f).toString()) // Updated to use float
                 val imageUriString = it.getStringExtra("imageUri")
                 if (imageUriString != null) {
                     imageUri = Uri.parse(imageUriString)
@@ -66,7 +66,7 @@ class AddItemActivity : AppCompatActivity() {
                     orderId = 0,
                     imageUri = imageUri.toString(),
                     itemName = viewBinding.editTextItemName.text.toString(),
-                    itemPrice = viewBinding.editTextItemPrice.text.toString().toInt()
+                    itemPrice = viewBinding.editTextItemPrice.text.toString().toFloat() // Updated to use float
                 )
 
                 val dbHandler = DatabaseHandler(this)

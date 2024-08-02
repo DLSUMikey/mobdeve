@@ -10,6 +10,7 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import java.text.DecimalFormat
 
 class MainAdapter(
     private var mList: MutableList<ItemModel>,
@@ -38,7 +39,10 @@ class MainAdapter(
         val imageUri = Uri.parse(item.imageUri)
         Picasso.get().load(imageUri).into(holder.imageView)
         holder.textViewName.text = item.itemName
-        holder.textViewPrice.text = item.itemPrice.toString()
+
+        // Format the price to 2 decimal places
+        val df = DecimalFormat("#.00")
+        holder.textViewPrice.text = "₱${df.format(item.itemPrice)}"
 
         holder.menuBtn.setOnClickListener { // Set click listener for menuBtn
             showPopupMenu(holder.menuBtn, item)
@@ -75,4 +79,3 @@ class MainAdapter(
         popup.show()
     }
 }
-

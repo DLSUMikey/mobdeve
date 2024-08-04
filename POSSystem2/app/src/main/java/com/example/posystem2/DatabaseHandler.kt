@@ -343,4 +343,59 @@ class DatabaseHandler(context: Context) {
         return rowsUpdated
     }
 
+    fun getCompletedOrders(): List<OrderModel> {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            DbReferences.TABLE_ORDERS,
+            null,
+            "${DbReferences.COLUMN_STATUS} = ?",
+            arrayOf("Completed"),
+            null,
+            null,
+            null
+        )
+        val orders = mutableListOf<OrderModel>()
+        while (cursor.moveToNext()) {
+            val orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID))
+            val orderDate = Date(cursor.getLong(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_DATE)))
+            val totalAmount = cursor.getDouble(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_TOTAL_AMOUNT))
+            val status = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_STATUS))
+            val items = getItemsByOrderId(orderId)
+            orders.add(OrderModel(orderId, orderDate, totalAmount, items, status))
+        }
+        cursor.close()
+        db.close()
+        return orders
+    }
+
+    fun getAllItemsIncludingUnordered(): List<ItemModel> {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            DbReferences.TABLE_ITEMS,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+        val items = mutableListOf<ItemModel>()
+        while (cursor.moveToNext()) {
+            val item = ItemModel(
+                orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID_FK)),
+                imageUri = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_URI)),
+                itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
+                itemPrice = cursor.getFloat(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE)),
+                quantity = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_QUANTITY)),
+                ordered = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDERED)) == 1
+            )
+            items.add(item)
+        }
+        cursor.close()
+        db.close()
+        return items
+    }
+
+
+
 }

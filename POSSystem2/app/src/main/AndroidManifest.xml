@@ -11,6 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.POSSystem"
         tools:targetApi="31">
+        <activity android:name=".StatisticsActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

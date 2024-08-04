@@ -29,7 +29,7 @@ class OrderAdapter(
         val order = orders[position]
         holder.orderId.text = "Order ID: ${order.orderId}"
         holder.orderDate.text = "Date: ${order.orderDate}"
-        holder.totalAmount.text = "Total: $${order.totalAmount}"
+        holder.totalAmount.text = "Total: ₱${String.format("%.2f", order.totalAmount)}" // Format total amount to 2 decimal points
         holder.orderQty.text = "Qty: ${order.totalQuantity}" // Display total quantity
         holder.orderStatus.text = "Status: ${order.status}" // Display order status
 

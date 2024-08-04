@@ -16,42 +16,31 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/itemImageiv"
-            android:layout_width="87dp"
-            android:layout_height="87dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="0dp"
-            android:adjustViewBounds="true"
-            tools:src="@tools:sample/avatars" />
-
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="1"
             android:orientation="vertical"
-            android:layout_weight="1">
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
 
             <TextView
-                android:id="@+id/itemNametv"
-                android:layout_width="wrap_content"
+                android:id="@+id/statisticsItemName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="8dp"
-                android:text="TextView" />
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Item Name" />
 
             <TextView
-                android:id="@+id/priceTexttv"
-                android:layout_width="wrap_content"
+                android:id="@+id/statisticsItemCount"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="8dp"
-                android:text="TextView" />
+                android:textSize="16sp"
+                android:layout_marginTop="4dp"
+                tools:text="Count: 0" />
+
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="40dp"
-            android:layout_height="match_parent"
-            android:orientation="vertical"/>
 
     </LinearLayout>
 

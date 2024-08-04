@@ -238,7 +238,7 @@ class MainActivity : AppCompatActivity() {
                     switchToOrderView() // Set up the orders view and toolbar
                 }
                 R.id.nav_statistics -> {
-                    // Handle Statistics action
+                    switchToStatisticsView()
                 }
                 R.id.nav_logout -> {
                     showConfirmationDialog("Are you sure you want to log out?") {
@@ -250,6 +250,7 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
+
 
     private fun logout() {
         // Clear user session data
@@ -550,4 +551,65 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    private fun switchToStatisticsView() {
+        setContentView(R.layout.statistics_view) // Make sure this layout has a RecyclerView and Toolbar like in activity_main
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
+
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        drawerLayout = findViewById(R.id.drawer_layout)
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        setupNavigation() // Call setupNavigation to handle navigation items
+
+        val recyclerView: RecyclerView = findViewById(R.id.statisticsRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        lifecycleScope.launch {
+            try {
+                val statistics = getAggregatedStatistics()
+                runOnUiThread {
+                    recyclerView.adapter = StatisticsAdapter(statistics)
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error setting up Statistics RecyclerView", e)
+            }
+        }
+    }
+
+
+
+
+    private fun getAggregatedStatistics(): List<StatisticsModel> {
+        val itemMap = mutableMapOf<String, Int>()
+
+        // Get all items from the inventory
+        val allItems = dbHandler.getAllItems()
+
+        // Initialize all items with count 0
+        for (item in allItems) {
+            itemMap[item.itemName] = 0
+        }
+
+        // Get completed orders and count the items
+        val completedOrders = dbHandler.getCompletedOrders()
+        for (order in completedOrders) {
+            for (item in order.items) {
+                val currentCount = itemMap[item.itemName] ?: 0
+                itemMap[item.itemName] = currentCount + item.quantity
+            }
+        }
+
+        return itemMap.map { (itemName, itemCount) -> StatisticsModel(itemName, itemCount) }
+            .sortedByDescending { it.itemCount }
+    }
+
+
 }
+
+

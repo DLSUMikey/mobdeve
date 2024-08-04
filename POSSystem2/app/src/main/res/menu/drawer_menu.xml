@@ -2,11 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_home"
-        android:title="Home" />
+        android:title="@string/home" />
     <item
         android:id="@+id/nav_orders"
-        android:title="Orders" />
+        android:title="@string/orders" />
     <item
         android:id="@+id/nav_statistics"
-        android:title="Statistics" />
+        android:title="@string/statistics" />
+    <item
+        android:id="@+id/nav_logout"
+        android:title="@string/logout" />
 </menu>

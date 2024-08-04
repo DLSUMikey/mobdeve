@@ -34,9 +34,33 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="150dp"
+            android:layout_marginTop="40dp"
             android:gravity="center"
             android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/editTextFirstName"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:ems="10"
+                android:hint="First Name"
+                android:inputType="text" />
+
+            <EditText
+                android:id="@+id/editTextLastName"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:ems="10"
+                android:hint="Last Name"
+                android:inputType="text" />
+
+            <EditText
+                android:id="@+id/editTextPhoneNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:ems="10"
+                android:hint="Phone Number"
+                android:inputType="phone" />
 
             <EditText
                 android:id="@+id/editTextEmail"
@@ -54,17 +78,22 @@
                 android:hint="Password"
                 android:inputType="textPassword" />
 
+            <Spinner
+                android:id="@+id/spinnerUserType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
 
                 <Button
                     android:id="@+id/backBtn"
                     android:layout_width="100dp"
                     android:layout_height="70dp"
-                    android:layout_marginLeft="40dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_margin="20dp"
                     android:layout_weight="1"
                     android:text="Back" />
 
@@ -72,8 +101,7 @@
                     android:id="@+id/registerBtn2"
                     android:layout_width="100dp"
                     android:layout_height="70dp"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginRight="40dp"
+                    android:layout_margin="20dp"
                     android:layout_weight="1"
                     android:text="Register" />
             </LinearLayout>

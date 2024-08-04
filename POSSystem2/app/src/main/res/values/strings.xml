@@ -2,4 +2,8 @@
     <string name="app_name">POS System</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="statistics">Statistics</string>
+    <string name="logout">Logout</string>
+    <string name="orders">Orders</string>
+    <string name="home">Home</string>
 </resources>

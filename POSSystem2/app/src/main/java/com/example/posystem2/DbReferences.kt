@@ -1,5 +1,5 @@
 object DbReferences {
-    const val DATABASE_VERSION = 4
+    const val DATABASE_VERSION = 5  // Incremented version
     const val DATABASE_NAME = "posystem2.db"
 
     const val TABLE_ORDERS = "orders"
@@ -22,6 +22,10 @@ object DbReferences {
     const val COLUMN_PROFILE_ID = "profile_id"
     const val COLUMN_EMAIL = "email"
     const val COLUMN_PASSWORD = "password"
+    const val COLUMN_FIRST_NAME = "first_name"
+    const val COLUMN_LAST_NAME = "last_name"
+    const val COLUMN_PHONE_NUMBER = "phone_number"
+    const val COLUMN_USER_TYPE = "user_type"
 
     const val CREATE_ORDERS_TABLE = """
         CREATE TABLE IF NOT EXISTS $TABLE_ORDERS (
@@ -50,7 +54,11 @@ object DbReferences {
         CREATE TABLE IF NOT EXISTS $TABLE_PROFILE (
             $COLUMN_PROFILE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
             $COLUMN_EMAIL TEXT,
-            $COLUMN_PASSWORD TEXT
+            $COLUMN_PASSWORD TEXT,
+            $COLUMN_FIRST_NAME TEXT,
+            $COLUMN_LAST_NAME TEXT,
+            $COLUMN_PHONE_NUMBER TEXT,
+            $COLUMN_USER_TYPE TEXT
         )
     """
 

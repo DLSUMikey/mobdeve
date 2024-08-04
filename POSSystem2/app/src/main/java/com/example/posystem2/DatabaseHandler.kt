@@ -144,15 +144,21 @@ class DatabaseHandler(context: Context) {
 
     fun addDummyProfiles() {
         val profiles = listOf(
-            ProfileModel(0, "john.doe@example.com", BCrypt.withDefaults().hashToString(12, "password123".toCharArray())),
-            ProfileModel(0, "jane.smith@example.com", BCrypt.withDefaults().hashToString(12, "password456".toCharArray())),
-            ProfileModel(0, "mike.jones@example.com", BCrypt.withDefaults().hashToString(12, "password789".toCharArray()))
+            ProfileModel(
+                id = 0,
+                email = "doe@gmail.com",
+                password = BCrypt.withDefaults().hashToString(12, "12345".toCharArray()),
+                firstName = "John",
+                lastName = "Doe",
+                phoneNumber = "123-456-7890",
+                userType = "Admin"
+            )
         )
-
         profiles.forEach { profile ->
             addProfile(profile, shouldHashPassword = false)
         }
     }
+
 
     fun addProfile(profile: ProfileModel, shouldHashPassword: Boolean = true): Long {
         val db = dbHelper.writableDatabase
@@ -164,6 +170,10 @@ class DatabaseHandler(context: Context) {
         val values = ContentValues().apply {
             put(DbReferences.COLUMN_EMAIL, profile.email)
             put(DbReferences.COLUMN_PASSWORD, passwordToStore)
+            put(DbReferences.COLUMN_FIRST_NAME, profile.firstName)
+            put(DbReferences.COLUMN_LAST_NAME, profile.lastName)
+            put(DbReferences.COLUMN_PHONE_NUMBER, profile.phoneNumber)
+            put(DbReferences.COLUMN_USER_TYPE, profile.userType)
         }
         val profileId = db.insert(DbReferences.TABLE_PROFILE, null, values)
         db.close()
@@ -175,9 +185,13 @@ class DatabaseHandler(context: Context) {
         val cursor = db.query(DbReferences.TABLE_PROFILE, null, "${DbReferences.COLUMN_EMAIL}=?", arrayOf(email), null, null, null)
         return if (cursor.moveToFirst()) {
             val profile = ProfileModel(
-                profileId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PROFILE_ID)),
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PROFILE_ID)),
                 email = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMAIL)),
-                password = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PASSWORD))
+                password = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PASSWORD)),
+                firstName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_FIRST_NAME)),
+                lastName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_LAST_NAME)),
+                phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PHONE_NUMBER)),
+                userType = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_USER_TYPE))
             )
             cursor.close()
             db.close()
@@ -196,9 +210,13 @@ class DatabaseHandler(context: Context) {
         if (cursor.moveToFirst()) {
             do {
                 val profile = ProfileModel(
-                    profileId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PROFILE_ID)),
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PROFILE_ID)),
                     email = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMAIL)),
-                    password = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PASSWORD))
+                    password = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PASSWORD)),
+                    firstName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_FIRST_NAME)),
+                    lastName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_LAST_NAME)),
+                    phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PHONE_NUMBER)),
+                    userType = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_USER_TYPE))
                 )
                 profiles.add(profile)
             } while (cursor.moveToNext())
@@ -214,12 +232,16 @@ class DatabaseHandler(context: Context) {
         val values = ContentValues().apply {
             put(DbReferences.COLUMN_EMAIL, profile.email)
             put(DbReferences.COLUMN_PASSWORD, hashedPassword)
+            put(DbReferences.COLUMN_FIRST_NAME, profile.firstName)
+            put(DbReferences.COLUMN_LAST_NAME, profile.lastName)
+            put(DbReferences.COLUMN_PHONE_NUMBER, profile.phoneNumber)
+            put(DbReferences.COLUMN_USER_TYPE, profile.userType)
         }
         val rowsUpdated = db.update(
             DbReferences.TABLE_PROFILE,
             values,
             "${DbReferences.COLUMN_PROFILE_ID}=?",
-            arrayOf(profile.profileId.toString())
+            arrayOf(profile.id.toString())
         )
         db.close()
         return rowsUpdated

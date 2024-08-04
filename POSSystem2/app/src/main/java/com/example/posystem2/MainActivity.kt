@@ -1,8 +1,11 @@
 package com.example.posystem2
 
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -10,6 +13,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -40,27 +45,38 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private lateinit var sharedPreferences: SharedPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.title_view)
+        sharedPreferences = getSharedPreferences("UserSession", Context.MODE_PRIVATE)
 
-        dbHandler = DatabaseHandler(this)
+        if (isUserLoggedIn()) {
+            switchToMainLayout()
+        } else {
+            setContentView(R.layout.title_view)
+            dbHandler = DatabaseHandler(this)
 
-        // Add dummy profiles and items
-        lifecycleScope.launch {
-            try {
-                if (dbHandler.getAllProfiles().isEmpty()) {
-                    dbHandler.addDummyProfiles()
+            // Add dummy profiles and items
+            lifecycleScope.launch {
+                try {
+                    if (dbHandler.getAllProfiles().isEmpty()) {
+                        dbHandler.addDummyProfiles()
+                    }
+                    if (dbHandler.getAllItems().isEmpty()) {
+                        dbHandler.addDummyItems()
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error adding dummy profiles or items", e)
                 }
-                if (dbHandler.getAllItems().isEmpty()) {
-                    dbHandler.addDummyItems()
-                }
-            } catch (e: Exception) {
-                Log.e("MainActivity", "Error adding dummy profiles or items", e)
             }
-        }
 
-        setupTitleViewButtons()
+            setupTitleViewButtons()
+        }
+    }
+
+    private fun isUserLoggedIn(): Boolean {
+        return sharedPreferences.contains("email")
     }
 
     private fun setupTitleViewButtons() {
@@ -94,6 +110,8 @@ class MainActivity : AppCompatActivity() {
                     val isValid = dbHandler.validateLogin(email, password)
                     runOnUiThread {
                         if (isValid) {
+                            val profile = dbHandler.getProfileByEmail(email)
+                            saveUserSession(profile!!)
                             switchToMainLayout()
                         } else {
                             Toast.makeText(this@MainActivity, "Invalid email or password", Toast.LENGTH_SHORT).show()
@@ -106,7 +124,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveUserSession(profile: ProfileModel) {
+        val editor = sharedPreferences.edit()
+        editor.putString("email", profile.email)
+        editor.putString("userType", profile.userType)
+        editor.apply()
+    }
+
     private fun setupRegistration() {
+        setContentView(R.layout.register_view)
+
+        val userTypeSpinner: Spinner = findViewById(R.id.spinnerUserType)
+        val userTypes = arrayOf("Employee", "Admin")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, userTypes)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        userTypeSpinner.adapter = adapter
+
         val registerBtn2: Button = findViewById(R.id.registerBtn2)
         val backBtn: Button = findViewById(R.id.backBtn)
         backBtn.setOnClickListener {
@@ -114,15 +147,27 @@ class MainActivity : AppCompatActivity() {
             setupTitleViewButtons()  // Re-bind the title view buttons
         }
         registerBtn2.setOnClickListener {
+            val firstName = findViewById<EditText>(R.id.editTextFirstName).text.toString()
+            val lastName = findViewById<EditText>(R.id.editTextLastName).text.toString()
+            val phoneNumber = findViewById<EditText>(R.id.editTextPhoneNumber).text.toString()
             val email = findViewById<EditText>(R.id.editTextEmail).text.toString()
             val password = findViewById<EditText>(R.id.editTextPass).text.toString()
+            val userType = userTypeSpinner.selectedItem.toString()
 
             lifecycleScope.launch {
                 try {
                     val existingProfile = dbHandler.getProfileByEmail(email)
                     runOnUiThread {
                         if (existingProfile == null) {
-                            val profile = ProfileModel(0, email, password)
+                            val profile = ProfileModel(
+                                id = 0,
+                                email = email,
+                                password = password,
+                                firstName = firstName,
+                                lastName = lastName,
+                                phoneNumber = phoneNumber,
+                                userType = userType
+                            )
                             dbHandler.addProfile(profile, shouldHashPassword = true) // Hash password for new accounts
                             switchToMainLayout()
                         } else {
@@ -192,11 +237,29 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_orders -> {
                     switchToOrderView() // Set up the orders view and toolbar
                 }
-                R.id.nav_statistics -> { /* Handle Statistics action */ }
+                R.id.nav_statistics -> {
+                    // Handle Statistics action
+                }
+                R.id.nav_logout -> {
+                    showConfirmationDialog("Are you sure you want to log out?") {
+                        logout()
+                    }
+                }
             }
             drawerLayout.closeDrawers()
             true
         }
+    }
+
+    private fun logout() {
+        // Clear user session data
+        val editor = sharedPreferences.edit()
+        editor.clear()
+        editor.apply()
+
+        // Navigate to title view
+        setContentView(R.layout.title_view)
+        setupTitleViewButtons()
     }
 
     private fun setupItemRecyclerView() {
@@ -254,7 +317,7 @@ class MainActivity : AppCompatActivity() {
         orderStatusTextView.text = "Status: ${order.status}"
 
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
-        itemsRecyclerView.adapter = CurrentOrderAdapter(order.items)
+        itemsRecyclerView.adapter = OrderDetailsAdapter(order.items)
 
         cancelOrderButton.setOnClickListener {
             updateOrderStatus(order, "Cancelled")
@@ -270,6 +333,7 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+
 
     private fun updateOrderStatus(order: OrderModel, newStatus: String) {
         val updatedOrder = order.copy(status = newStatus)
@@ -406,7 +470,11 @@ class MainActivity : AppCompatActivity() {
         val aggregatedItems = aggregateItems(currentOrderItems)
         val recyclerView: RecyclerView = dialog.findViewById(R.id.currentOrderRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = CurrentOrderAdapter(aggregatedItems)
+        recyclerView.adapter = CurrentOrderAdapter(aggregatedItems) { item ->
+            removeFromOrder(item)
+            dialog.dismiss()  // Dismiss and re-open the dialog to refresh the view
+            showCurrentOrderDialog()
+        }
 
         val totalPriceTextView: TextView = dialog.findViewById(R.id.totalPriceTextView)
         val itemCountTextView: TextView = dialog.findViewById(R.id.itemCountTextView)
@@ -417,8 +485,54 @@ class MainActivity : AppCompatActivity() {
         totalPriceTextView.text = "Total Price: ₱${String.format("%.2f", totalAmount)}"
         itemCountTextView.text = "Items: $itemCount"
 
+        // Adjust the dialog window size
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val dialogWidth = displayMetrics.widthPixels
+        val dialogHeight = (displayMetrics.heightPixels * 0.75).toInt()
+
+        dialog.window?.setLayout(dialogWidth, dialogHeight)
+
         dialog.show()
     }
+
+
+    private fun removeFromOrder(item: ItemModel) {
+        val existingItem = currentOrderItems.find { it.itemName == item.itemName }
+        if (existingItem != null) {
+            if (existingItem.quantity > 1) {
+                existingItem.quantity -= 1
+            } else {
+                currentOrderItems.remove(existingItem)
+            }
+            Toast.makeText(this, "${item.itemName} removed from order", Toast.LENGTH_SHORT).show()
+            updateOrderSummary()
+        }
+    }
+
+    private fun showConfirmationDialog(message: String, onConfirm: () -> Unit) {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_confirmation)
+
+        val confirmationMessage: TextView = dialog.findViewById(R.id.confirmationMessage)
+        val confirmYesButton: Button = dialog.findViewById(R.id.confirmYesButton)
+        val confirmNoButton: Button = dialog.findViewById(R.id.confirmNoButton)
+
+        confirmationMessage.text = message
+
+        confirmYesButton.setOnClickListener {
+            onConfirm()
+            dialog.dismiss()
+        }
+
+        confirmNoButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+
 
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

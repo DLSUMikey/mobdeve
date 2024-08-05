@@ -9,6 +9,7 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -169,6 +170,7 @@ class MainActivity : AppCompatActivity() {
                                 userType = userType
                             )
                             dbHandler.addProfile(profile, shouldHashPassword = true) // Hash password for new accounts
+                            saveUserSession(profile)
                             switchToMainLayout()
                         } else {
                             Toast.makeText(this@MainActivity, "Email already registered", Toast.LENGTH_SHORT).show()
@@ -227,18 +229,67 @@ class MainActivity : AppCompatActivity() {
         setupOrderRecyclerView() // Set up orders RecyclerView in the order view layout
     }
 
+    private fun switchToAccountsLayout() {
+        setContentView(R.layout.accounts_view)
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
+
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        drawerLayout = findViewById(R.id.drawer_layout)
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        setupAccountsRecyclerView()
+        setupNavigation()
+    }
+
+    private fun setupAccountsRecyclerView() {
+        val accountsRecyclerView: RecyclerView = findViewById(R.id.accountsRecyclerView)
+        accountsRecyclerView.layoutManager = LinearLayoutManager(this)
+
+        lifecycleScope.launch {
+            try {
+                val accounts = dbHandler.getAllProfiles()
+                runOnUiThread {
+                    val adapter = AccountsAdapter(accounts, ::onAccountClick)
+                    accountsRecyclerView.adapter = adapter
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error fetching accounts", e)
+            }
+        }
+    }
+
+
     private fun setupNavigation() {
         val navigationView: NavigationView = findViewById(R.id.navigation_view)
+        val menu = navigationView.menu
+        val userType = sharedPreferences.getString("userType", "Employee")
+
+        if (userType == "Employee") {
+            menu.findItem(R.id.nav_statistics).isVisible = false
+            menu.findItem(R.id.nav_accounts).isVisible = false // Hide accounts for non-admins
+        } else if (userType == "Admin") {
+            menu.findItem(R.id.nav_statistics).isVisible = true
+            menu.findItem(R.id.nav_accounts).isVisible = true // Show accounts for admins
+        }
+
         navigationView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
                     switchToMainLayout()
                 }
                 R.id.nav_orders -> {
-                    switchToOrderView() // Set up the orders view and toolbar
+                    switchToOrderView()
                 }
                 R.id.nav_statistics -> {
                     switchToStatisticsView()
+                }
+                R.id.nav_accounts -> {
+                    switchToAccountsLayout()
                 }
                 R.id.nav_logout -> {
                     showConfirmationDialog("Are you sure you want to log out?") {
@@ -250,7 +301,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
-
 
     private fun logout() {
         // Clear user session data
@@ -312,6 +362,7 @@ class MainActivity : AppCompatActivity() {
         val cancelOrderButton: Button = dialog.findViewById(R.id.cancelOrderButton)
         val completeOrderButton: Button = dialog.findViewById(R.id.completeOrderButton)
 
+        // Set order details
         orderIdTextView.text = "Order ID: ${order.orderId}"
         orderDateTextView.text = "Date: ${order.orderDate}"
         totalAmountTextView.text = "Total: ₱${order.totalAmount}"
@@ -320,10 +371,20 @@ class MainActivity : AppCompatActivity() {
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
         itemsRecyclerView.adapter = OrderDetailsAdapter(order.items)
 
+        // Get user type from SharedPreferences
+        val userType = sharedPreferences.getString("userType", "Employee")
+
+        // Hide cancel button if the user is not an admin
+        if (userType == "Employee") {
+            cancelOrderButton.visibility = View.GONE
+        }
+
         cancelOrderButton.setOnClickListener {
-            updateOrderStatus(order, "Cancelled")
-            refreshOrders()
-            dialog.dismiss()
+            showConfirmationDialog("Are you sure you want to cancel this order?") {
+                updateOrderStatus(order, "Cancelled")
+                refreshOrders()
+                dialog.dismiss()
+            }
         }
 
         completeOrderButton.setOnClickListener {
@@ -334,6 +395,7 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+
 
 
     private fun updateOrderStatus(order: OrderModel, newStatus: String) {
@@ -511,6 +573,81 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun showEditAccountDialog(account: ProfileModel) {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_account_edit)
+
+        val accountEmailText: TextView = dialog.findViewById(R.id.accountEmailText)
+        val firstNameEditText: EditText = dialog.findViewById(R.id.editTextFirstName)
+        val lastNameEditText: EditText = dialog.findViewById(R.id.editTextLastName)
+        val phoneNumberEditText: EditText = dialog.findViewById(R.id.editTextPhoneNumber)
+        val userTypeSpinner: Spinner = dialog.findViewById(R.id.spinnerUserType)
+
+        accountEmailText.text = account.email
+        firstNameEditText.setText(account.firstName)
+        lastNameEditText.setText(account.lastName)
+        phoneNumberEditText.setText(account.phoneNumber)
+
+        val userTypes = arrayOf("Employee", "Admin")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, userTypes)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        userTypeSpinner.adapter = adapter
+        userTypeSpinner.setSelection(userTypes.indexOf(account.userType))
+
+        val saveButton: Button = dialog.findViewById(R.id.saveButton)
+        saveButton.setOnClickListener {
+            val updatedAccount = ProfileModel(
+                id = account.id,
+                email = account.email, // Email remains unchanged
+                password = account.password, // Password remains unchanged
+                firstName = firstNameEditText.text.toString(),
+                lastName = lastNameEditText.text.toString(),
+                phoneNumber = phoneNumberEditText.text.toString(),
+                userType = userTypeSpinner.selectedItem.toString()
+            )
+            lifecycleScope.launch {
+                try {
+                    dbHandler.updateProfile(updatedAccount)
+                    dialog.dismiss()
+                    switchToAccountsLayout() // Refresh the accounts list
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error updating account", e)
+                }
+            }
+        }
+
+        val deleteButton: Button = dialog.findViewById(R.id.deleteButton)
+        deleteButton.setOnClickListener {
+            showConfirmationDialog("Are you sure you want to delete this account?") {
+                lifecycleScope.launch {
+                    try {
+                        dbHandler.deleteProfile(account.id)
+                        dialog.dismiss()
+                        switchToAccountsLayout() // Refresh the accounts list
+                    } catch (e: Exception) {
+                        Log.e("MainActivity", "Error deleting account", e)
+                    }
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+
+
+    private fun onAccountClick(account: ProfileModel) {
+        // Open edit account dialog or activity
+        showEditAccountDialog(account)
+    }
+
+    private fun onAccountClose(account: ProfileModel) {
+        showConfirmationDialog("Are you sure you want to close this account?") {
+            dbHandler.deleteProfile(account.id)
+            switchToAccountsLayout() // Refresh the accounts list
+        }
+    }
+
     private fun showConfirmationDialog(message: String, onConfirm: () -> Unit) {
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.dialog_confirmation)
@@ -532,9 +669,6 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
-
-
-
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)

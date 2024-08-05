@@ -596,6 +596,7 @@ class MainActivity : AppCompatActivity() {
 
         val saveButton: Button = dialog.findViewById(R.id.saveButton)
         saveButton.setOnClickListener {
+            val newUserType = userTypeSpinner.selectedItem.toString()
             val updatedAccount = ProfileModel(
                 id = account.id,
                 email = account.email, // Email remains unchanged
@@ -603,11 +604,14 @@ class MainActivity : AppCompatActivity() {
                 firstName = firstNameEditText.text.toString(),
                 lastName = lastNameEditText.text.toString(),
                 phoneNumber = phoneNumberEditText.text.toString(),
-                userType = userTypeSpinner.selectedItem.toString()
+                userType = newUserType
             )
             lifecycleScope.launch {
                 try {
                     dbHandler.updateProfile(updatedAccount)
+                    if (account.email == sharedPreferences.getString("email", "")) {
+                        updateSharedPreferencesUserType(newUserType)
+                    }
                     dialog.dismiss()
                     switchToAccountsLayout() // Refresh the accounts list
                 } catch (e: Exception) {
@@ -634,7 +638,12 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-
+    private fun updateSharedPreferencesUserType(newUserType: String) {
+        val editor = sharedPreferences.edit()
+        editor.putString("userType", newUserType)
+        editor.apply()
+        setupNavigation() // Refresh the navigation menu
+    }
 
     private fun onAccountClick(account: ProfileModel) {
         // Open edit account dialog or activity

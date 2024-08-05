@@ -228,10 +228,14 @@ class DatabaseHandler(context: Context) {
 
     fun updateProfile(profile: ProfileModel): Int {
         val db = dbHelper.writableDatabase
-        val hashedPassword = BCrypt.withDefaults().hashToString(12, profile.password.toCharArray())
         val values = ContentValues().apply {
             put(DbReferences.COLUMN_EMAIL, profile.email)
-            put(DbReferences.COLUMN_PASSWORD, hashedPassword)
+            // Only hash the password if it is not already hashed
+            if (!profile.password.startsWith("$2a$")) {
+                put(DbReferences.COLUMN_PASSWORD, BCrypt.withDefaults().hashToString(12, profile.password.toCharArray()))
+            } else {
+                put(DbReferences.COLUMN_PASSWORD, profile.password)
+            }
             put(DbReferences.COLUMN_FIRST_NAME, profile.firstName)
             put(DbReferences.COLUMN_LAST_NAME, profile.lastName)
             put(DbReferences.COLUMN_PHONE_NUMBER, profile.phoneNumber)

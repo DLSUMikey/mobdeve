@@ -1,5 +1,5 @@
 object DbReferences {
-    const val DATABASE_VERSION = 5  // Incremented version
+    const val DATABASE_VERSION = 6  // Incremented version for schema update
     const val DATABASE_NAME = "posystem2.db"
 
     const val TABLE_ORDERS = "orders"
@@ -18,6 +18,8 @@ object DbReferences {
     const val COLUMN_ORDER_ID_FK = "order_id_fk"
     const val COLUMN_ORDERED = "ordered"
     const val COLUMN_QUANTITY = "quantity"
+    const val COLUMN_INITIAL_STOCK = "initial_stock"
+    const val COLUMN_AMOUNT_SOLD = "amount_sold"
 
     const val TABLE_PROFILE = "profile"
     const val COLUMN_PROFILE_ID = "profile_id"
@@ -48,6 +50,8 @@ object DbReferences {
             $COLUMN_ORDER_ID_FK INTEGER,
             $COLUMN_ORDERED INTEGER DEFAULT 0,
             $COLUMN_QUANTITY INTEGER DEFAULT 1,
+            $COLUMN_INITIAL_STOCK INTEGER DEFAULT 0, 
+            $COLUMN_AMOUNT_SOLD INTEGER DEFAULT 0,    
             FOREIGN KEY($COLUMN_ORDER_ID_FK) REFERENCES $TABLE_ORDERS($COLUMN_ORDER_ID)
         )
     """

@@ -6,9 +6,7 @@ data class ItemModel(
     val itemName: String,
     val itemPrice: Float,
     var quantity: Int = 1,
-    val ordered: Boolean = false
+    val ordered: Boolean = false,
+    var initialStock: Int = 0,
+    var amountSold: Int = 0
 )
-
-
-
-

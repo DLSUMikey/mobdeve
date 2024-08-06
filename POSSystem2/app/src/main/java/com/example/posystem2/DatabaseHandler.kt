@@ -335,9 +335,9 @@ class DatabaseHandler(context: Context) {
 
             // Create dummy items and associate them with the order
             val items = listOf(
-                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 1", 10.0f, 1),
-                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 2", 20.0f, 1),
-                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 3", 30.0f, 1)
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 1", 10.0f),
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 2", 20.0f ),
+                ItemModel(orderId, "android.resource://com.example.posystem2/drawable/ic_launcher_background", "Item 3", 30.0f )
             )
             items.forEach { item ->
                 addItem(item, db)
@@ -410,6 +410,8 @@ class DatabaseHandler(context: Context) {
 
     fun getAllItemsIncludingUnordered(): List<ItemModel> {
         val db = dbHelper.readableDatabase
+        val itemsSold = getAggregatedItemsSold()
+        val items = mutableListOf<ItemModel>()
         val cursor = db.query(
             DbReferences.TABLE_ITEMS,
             null,
@@ -419,23 +421,70 @@ class DatabaseHandler(context: Context) {
             null,
             null
         )
-        val items = mutableListOf<ItemModel>()
-        while (cursor.moveToNext()) {
-            val item = ItemModel(
-                orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID_FK)),
-                imageUri = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_URI)),
-                itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME)),
-                itemPrice = cursor.getFloat(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE)),
-                quantity = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_QUANTITY)),
-                ordered = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDERED)) == 1
-            )
-            items.add(item)
+
+        try {
+            while (cursor.moveToNext()) {
+                val itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME))
+                val item = ItemModel(
+                    orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID_FK)),
+                    imageUri = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IMAGE_URI)),
+                    itemName = itemName,
+                    itemPrice = cursor.getFloat(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_PRICE)),
+                    quantity = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_QUANTITY)),
+                    ordered = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDERED)) == 1,
+                    initialStock = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_INITIAL_STOCK)),
+                    amountSold = itemsSold[itemName] ?: 0 // Use the aggregated data
+                )
+                items.add(item)
+                Log.d("DatabaseHandler", "Fetched Item: ${item.itemName}, Initial Stock: ${item.initialStock}, Amount Sold: ${item.amountSold}")
+            }
+        } finally {
+            cursor.close()
+            db.close()
         }
-        cursor.close()
-        db.close()
         return items
     }
 
+
+    fun getAggregatedItemsSold(): Map<String, Int> {
+        val query = """
+        SELECT ${DbReferences.COLUMN_ITEM_NAME}, SUM(${DbReferences.COLUMN_QUANTITY}) as total_sold
+        FROM ${DbReferences.TABLE_ITEMS}
+        JOIN ${DbReferences.TABLE_ORDERS} ON ${DbReferences.TABLE_ITEMS}.${DbReferences.COLUMN_ORDER_ID_FK} = ${DbReferences.TABLE_ORDERS}.${DbReferences.COLUMN_ORDER_ID}
+        WHERE ${DbReferences.COLUMN_STATUS} = 'Completed'
+        GROUP BY ${DbReferences.COLUMN_ITEM_NAME}
+    """
+
+        val cursor = dbHelper.readableDatabase.rawQuery(query, null)
+        val itemsSold = mutableMapOf<String, Int>()
+
+        try {
+            while (cursor.moveToNext()) {
+                val itemName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ITEM_NAME))
+                val totalSold = cursor.getInt(cursor.getColumnIndexOrThrow("total_sold"))
+                itemsSold[itemName] = totalSold
+            }
+        } finally {
+            cursor.close()
+        }
+        return itemsSold
+    }
+
+    fun updateItemStock(itemId: Int, newStock: Int) {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put(DbReferences.COLUMN_INITIAL_STOCK, newStock)
+            put(DbReferences.COLUMN_AMOUNT_SOLD, 0) // Reset amount sold to zero
+        }
+        val rowsUpdated = db.update(
+            DbReferences.TABLE_ITEMS,
+            values,
+            "${DbReferences.COLUMN_ITEM_ID}=?",
+            arrayOf(itemId.toString())
+        )
+        Log.d("DatabaseHandler", "Rows updated: $rowsUpdated, Item ID: $itemId, New Stock: $newStock, Amount Sold: 0")
+        db.close()
+    }
 
 
 }

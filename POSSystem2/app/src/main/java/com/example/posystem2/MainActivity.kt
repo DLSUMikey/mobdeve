@@ -27,9 +27,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Date
 
 class MainActivity : AppCompatActivity() {
@@ -299,9 +297,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_accounts -> {
                     switchToAccountsLayout()
                 }
-                R.id.nav_inventory -> {
-                    switchToInventoryLayout()
-                }
                 R.id.nav_logout -> {
                     showConfirmationDialog("Are you sure you want to log out?") {
                         logout()
@@ -312,7 +307,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
-
 
     private fun logout() {
         // Clear user session data
@@ -774,55 +768,4 @@ class MainActivity : AppCompatActivity() {
         return itemMap.map { (itemName, itemCount) -> StatisticsModel(itemName, itemCount) }
             .sortedByDescending { it.itemCount }
     }
-
-    private fun switchToInventoryLayout() {
-        isMainLayoutDisplayed = false
-        setContentView(R.layout.inventory_view)
-
-        window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
-
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
-
-        drawerLayout = findViewById(R.id.drawer_layout)
-        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
-
-        setupNavigation() // Ensure the navigation menu is still functional
-        setupInventoryRecyclerView()
-    }
-
-    private fun setupInventoryRecyclerView() {
-        val recyclerView: RecyclerView = findViewById(R.id.inventoryRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-
-        lifecycleScope.launch {
-            try {
-                val items = withContext(Dispatchers.IO) {
-                    dbHandler.getAllItemsIncludingUnordered()
-                }
-                val adapter = InventoryAdapter(items) { item, newStock ->
-                    updateItemStock(item, newStock)
-                }
-                recyclerView.adapter = adapter
-            } catch (e: Exception) {
-                Log.e("MainActivity", "Error setting up Inventory RecyclerView", e)
-            }
-        }
-    }
-
-    private fun updateItemStock(item: ItemModel, newStock: Int) {
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                dbHandler.updateItemStock(item.orderId, newStock)
-            }
-            setupInventoryRecyclerView() // Refresh the inventory list
-            Toast.makeText(this@MainActivity, "Stock updated for ${item.itemName}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-
-
-
 }

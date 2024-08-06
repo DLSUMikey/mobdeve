@@ -40,7 +40,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: MainAdapter
 
     private val addItemActivityResultLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
         if (result.resultCode == RESULT_OK) {
             refreshItems()
         }
@@ -162,7 +163,7 @@ class MainActivity : AppCompatActivity() {
                     runOnUiThread {
                         if (existingProfile == null) {
                             val profile = ProfileModel(
-                                id = 0, // Updated to match ProfileModel
+                                id = 0,
                                 email = email,
                                 password = password,
                                 firstName = firstName,
@@ -184,7 +185,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun switchToMainLayout() {
         setContentView(R.layout.activity_main) // Set the correct layout
@@ -265,7 +265,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun setupNavigation() {
         val navigationView: NavigationView = findViewById(R.id.navigation_view)
@@ -423,7 +422,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun refreshItems() {
         lifecycleScope.launch {
             try {
@@ -453,7 +451,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun handleItemMenuAction(action: MainAdapter.MenuAction, item: ItemModel) {
         when (action) {
@@ -575,7 +572,6 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
-
 
     private fun removeFromOrder(item: ItemModel) {
         val existingItem = currentOrderItems.find { it.itemName == item.itemName }
@@ -742,9 +738,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
-
     private fun getAggregatedStatistics(): List<StatisticsModel> {
         val itemMap = mutableMapOf<String, Int>()
 
@@ -768,8 +761,4 @@ class MainActivity : AppCompatActivity() {
         return itemMap.map { (itemName, itemCount) -> StatisticsModel(itemName, itemCount) }
             .sortedByDescending { it.itemCount }
     }
-
-
 }
-
-

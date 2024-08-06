@@ -19,15 +19,14 @@ class AddItemActivity : AppCompatActivity() {
     private var itemId: Int = -1
 
     private val myActivityResultLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-        if (result.resultCode == RESULT_OK) {
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
             try {
-                if (result.data != null) {
-                    imageUri = result.data!!.data
-                    Picasso.get().load(imageUri).into(viewBinding.tempImageIv)
-                }
+                imageUri = result.data!!.data
+                imageUri?.let { Picasso.get().load(it).into(viewBinding.tempImageIv) }
             } catch (exception: Exception) {
-                Log.d("TAG", "" + exception.localizedMessage)
+                Log.d("AddItemActivity", "Error loading image: ${exception.localizedMessage}")
             }
         }
     }
@@ -38,35 +37,34 @@ class AddItemActivity : AppCompatActivity() {
         viewBinding = ActivityAddItemBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-        // Check if we're editing an existing item
         intent?.let {
             if (it.hasExtra("itemId")) {
                 isEditing = true
                 itemId = it.getIntExtra("itemId", -1)
                 viewBinding.editTextItemName.setText(it.getStringExtra("itemName"))
-                viewBinding.editTextItemPrice.setText(it.getFloatExtra("itemPrice", 0f).toString()) // Updated to use float
-                val imageUriString = it.getStringExtra("imageUri")
-                if (imageUriString != null) {
-                    imageUri = Uri.parse(imageUriString)
+                viewBinding.editTextItemPrice.setText(it.getFloatExtra("itemPrice", 0f).toString())
+                it.getStringExtra("imageUri")?.let { uri ->
+                    imageUri = Uri.parse(uri)
                     Picasso.get().load(imageUri).into(viewBinding.tempImageIv)
                 }
             }
         }
 
         viewBinding.selectBtn.setOnClickListener {
-            val i = Intent()
-            i.type = "image/*"
-            i.action = Intent.ACTION_OPEN_DOCUMENT
-            myActivityResultLauncher.launch(Intent.createChooser(i, "Select Picture"))
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                type = "image/*"
+                addCategory(Intent.CATEGORY_OPENABLE)
+            }
+            myActivityResultLauncher.launch(Intent.createChooser(intent, "Select Picture"))
         }
 
         viewBinding.addBtn.setOnClickListener {
             if (areFieldsComplete()) {
                 val newItem = ItemModel(
-                    orderId = 0,
+                    orderId = if (isEditing) itemId else 0,
                     imageUri = imageUri.toString(),
                     itemName = viewBinding.editTextItemName.text.toString(),
-                    itemPrice = viewBinding.editTextItemPrice.text.toString().toFloat() // Updated to use float
+                    itemPrice = viewBinding.editTextItemPrice.text.toString().toFloat()
                 )
 
                 val dbHandler = DatabaseHandler(this)

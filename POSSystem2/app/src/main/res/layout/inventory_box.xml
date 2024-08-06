@@ -1,65 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="115dp"
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/customborder"
-        android:orientation="vertical"
-        android:padding="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/inventoryItemName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            tools:text="Item Name" />
+        <LinearLayout
+            android:layout_width="277dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/inventoryInitialStock"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:layout_marginTop="4dp"
-            tools:text="Initial Stock: 0" />
+            <TextView
+                android:id="@+id/inventoryItemName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Item Name"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/inventoryAmountSold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:layout_marginTop="4dp"
-            tools:text="Amount Sold: 0" />
+            <TextView
+                android:id="@+id/inventoryInitialStock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Initial Stock: 0" />
 
-        <TextView
-            android:id="@+id/inventoryCurrentStock"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:layout_marginTop="4dp"
-            tools:text="Current Stock: 0" />
+            <TextView
+                android:id="@+id/inventoryAmountSold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Amount Sold: 0" />
 
-        <EditText
-            android:id="@+id/editInitialStock"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:hint="Set Initial Stock"
-            android:inputType="number"
-            android:layout_marginTop="8dp" />
+            <TextView
+                android:id="@+id/inventoryCurrentStock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Current Stock: 0" />
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnUpdateStock"
-            android:layout_width="wrap_content"
+            android:layout_width="96dp"
             android:layout_height="48dp"
+            android:layout_marginTop="10dp"
             android:text="Update Stock"
-            android:layout_marginTop="8dp" />
+            android:textSize="12sp" />
+
     </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>

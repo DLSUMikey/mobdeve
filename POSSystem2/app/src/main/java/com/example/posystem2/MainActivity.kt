@@ -39,8 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dbHandler: DatabaseHandler
     private val currentOrderItems = mutableListOf<ItemModel>()
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: MainAdapter // Used for main adapter
-    private lateinit var inventoryAdapter: InventoryAdapter // Used for inventory adapter
+    private lateinit var adapter: MainAdapter
     private var isMainLayoutDisplayed = false
 
     private val addItemActivityResultLauncher = registerForActivityResult(
@@ -120,11 +119,7 @@ class MainActivity : AppCompatActivity() {
                             saveUserSession(profile!!)
                             switchToMainLayout()
                         } else {
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Invalid email or password",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(this@MainActivity, "Invalid email or password", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } catch (e: Exception) {
@@ -179,19 +174,12 @@ class MainActivity : AppCompatActivity() {
                                 phoneNumber = phoneNumber,
                                 userType = userType
                             )
-                            val newProfileId = dbHandler.addProfile(
-                                profile,
-                                shouldHashPassword = true
-                            ) // Hash password for new accounts
+                            val newProfileId = dbHandler.addProfile(profile, shouldHashPassword = true) // Hash password for new accounts
                             profile.id = newProfileId.toInt() // Ensure profile ID is updated
                             saveUserSession(profile)
                             switchToMainLayout()
                         } else {
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Email already registered",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(this@MainActivity, "Email already registered", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } catch (e: Exception) {
@@ -211,13 +199,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         drawerLayout = findViewById(R.id.drawer_layout)
-        toggle = ActionBarDrawerToggle(
-            this,
-            drawerLayout,
-            toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
@@ -247,13 +229,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         drawerLayout = findViewById(R.id.drawer_layout)
-        toggle = ActionBarDrawerToggle(
-            this,
-            drawerLayout,
-            toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
@@ -271,13 +247,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         drawerLayout = findViewById(R.id.drawer_layout)
-        toggle = ActionBarDrawerToggle(
-            this,
-            drawerLayout,
-            toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
@@ -320,23 +290,18 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_home -> {
                     switchToMainLayout()
                 }
-
                 R.id.nav_orders -> {
                     switchToOrderView()
                 }
-
                 R.id.nav_statistics -> {
                     switchToStatisticsView()
                 }
-
                 R.id.nav_accounts -> {
                     switchToAccountsLayout()
                 }
-
                 R.id.nav_inventory -> {
                     switchToInventoryLayout()
                 }
-
                 R.id.nav_logout -> {
                     showConfirmationDialog("Are you sure you want to log out?") {
                         logout()
@@ -347,6 +312,7 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
+
 
     private fun logout() {
         // Clear user session data
@@ -404,8 +370,7 @@ class MainActivity : AppCompatActivity() {
         val orderDateTextView: TextView = dialog.findViewById(R.id.orderDateDetailstv)
         val totalAmountTextView: TextView = dialog.findViewById(R.id.orderTotalDetailstv)
         val orderStatusTextView: TextView = dialog.findViewById(R.id.orderStatusDetailstv)
-        val takenByTextView: TextView =
-            dialog.findViewById(R.id.orderTakenByDetailstv) // New TextView for taken by
+        val takenByTextView: TextView = dialog.findViewById(R.id.orderTakenByDetailstv) // New TextView for taken by
         val itemsRecyclerView: RecyclerView = dialog.findViewById(R.id.itemsRecyclerView)
         val cancelOrderButton: Button = dialog.findViewById(R.id.cancelOrderButton)
         val completeOrderButton: Button = dialog.findViewById(R.id.completeOrderButton)
@@ -459,15 +424,10 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 dbHandler.updateOrderStatus(updatedOrder)
-                Toast.makeText(
-                    this@MainActivity,
-                    "Order ${updatedOrder.orderId} $newStatus",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@MainActivity, "Order ${updatedOrder.orderId} $newStatus", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error updating order status", e)
-                Toast.makeText(this@MainActivity, "Error updating order status", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(this@MainActivity, "Error updating order status", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -513,7 +473,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 addItemActivityResultLauncher.launch(intent)
             }
-
             MainAdapter.MenuAction.ADD -> {
                 addToOrder(item)
             }
@@ -549,10 +508,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() * it.quantity }
-        val employeeId = sharedPreferences.getInt(
-            "userId",
-            -1
-        ) // Assuming userId is stored in shared preferences
+        val employeeId = sharedPreferences.getInt("userId", -1) // Assuming userId is stored in shared preferences
 
         if (employeeId == -1) {
             Toast.makeText(this, "Invalid user. Cannot finalize order.", Toast.LENGTH_SHORT).show()
@@ -576,8 +532,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Order finalized", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error finalizing order", e)
-                Toast.makeText(this@MainActivity, "Error finalizing order", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(this@MainActivity, "Error finalizing order", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -761,7 +716,6 @@ class MainActivity : AppCompatActivity() {
                 addItemActivityResultLauncher.launch(intent)
                 true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -776,13 +730,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         drawerLayout = findViewById(R.id.drawer_layout)
-        toggle = ActionBarDrawerToggle(
-            this,
-            drawerLayout,
-            toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
@@ -837,13 +785,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         drawerLayout = findViewById(R.id.drawer_layout)
-        toggle = ActionBarDrawerToggle(
-            this,
-            drawerLayout,
-            toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
@@ -855,80 +797,32 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.inventoryRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch {
             try {
-                val items = dbHandler.getAllItemsIncludingUnordered().toMutableList()
-                withContext(Dispatchers.Main) {
-                    inventoryAdapter = InventoryAdapter(items) { item ->
-                        showUpdateStockDialog(item)
-                    }
-                    recyclerView.adapter = inventoryAdapter
+                val items = withContext(Dispatchers.IO) {
+                    dbHandler.getAllItemsIncludingUnordered()
                 }
+                val adapter = InventoryAdapter(items) { item, newStock ->
+                    updateItemStock(item, newStock)
+                }
+                recyclerView.adapter = adapter
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error setting up Inventory RecyclerView", e)
             }
         }
     }
 
-
-    private fun showUpdateStockDialog(item: ItemModel) {
-        val dialog = Dialog(this)
-        dialog.setContentView(R.layout.dialog_update_stock)
-
-        val itemNameTextView: TextView = dialog.findViewById(R.id.itemNameTextView)
-        val editInitialStock: EditText = dialog.findViewById(R.id.editInitialStock)
-        val btnUpdateStock: Button = dialog.findViewById(R.id.btnUpdateStock)
-
-        itemNameTextView.text = item.itemName
-
-        btnUpdateStock.setOnClickListener {
-            val newStock = editInitialStock.text.toString().toIntOrNull()
-            if (newStock != null) {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    Log.d(
-                        "MainActivity",
-                        "Calling updateItemStockByName for item: ${item.itemName}, New Stock: $newStock"
-                    )
-                    dbHandler.updateItemStockByName(item.itemName, newStock) // Update by item name
-
-                    withContext(Dispatchers.Main) {
-                        refreshInventoryList()
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Stock updated for ${item.itemName}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        dialog.dismiss()
-                    }
-                }
-            } else {
-                Toast.makeText(this, "Enter a valid stock number", Toast.LENGTH_SHORT).show()
+    private fun updateItemStock(item: ItemModel, newStock: Int) {
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                dbHandler.updateItemStock(item.orderId, newStock)
             }
-        }
-
-        dialog.show()
-    }
-
-    private fun refreshInventoryList() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val items = dbHandler.getAllItemsIncludingUnordered().toMutableList()
-                withContext(Dispatchers.Main) {
-                    inventoryAdapter.inventoryList.clear()
-                    inventoryAdapter.inventoryList.addAll(items)
-                    inventoryAdapter.notifyDataSetChanged()
-
-                    // Log each item to verify the updated data
-                    items.forEach { item ->
-                        Log.d(
-                            "MainActivity",
-                            "Refreshed Item: ${item.itemName}, Initial Stock: ${item.initialStock}, Amount Sold: ${item.amountSold}"
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("MainActivity", "Error refreshing inventory list", e)
-            }
+            setupInventoryRecyclerView() // Refresh the inventory list
+            Toast.makeText(this@MainActivity, "Stock updated for ${item.itemName}", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+
+
 }

@@ -10,8 +10,8 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
 class InventoryAdapter(
-    val inventoryList: MutableList<ItemModel>,
-    private val showUpdateStockDialog: (ItemModel) -> Unit
+    private val inventoryList: List<ItemModel>,
+    private val updateStockListener: (ItemModel, Int) -> Unit
 ) : RecyclerView.Adapter<InventoryAdapter.ViewHolder>() {
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -19,6 +19,7 @@ class InventoryAdapter(
         val initialStockTextView: TextView = itemView.findViewById(R.id.inventoryInitialStock)
         val amountSoldTextView: TextView = itemView.findViewById(R.id.inventoryAmountSold)
         val currentStockTextView: TextView = itemView.findViewById(R.id.inventoryCurrentStock)
+        val editInitialStock: EditText = itemView.findViewById(R.id.editInitialStock)
         val btnUpdateStock: Button = itemView.findViewById(R.id.btnUpdateStock)
     }
 
@@ -36,7 +37,12 @@ class InventoryAdapter(
         holder.currentStockTextView.text = "Current Stock: ${item.initialStock - item.amountSold}"
 
         holder.btnUpdateStock.setOnClickListener {
-            showUpdateStockDialog(item)
+            val newStock = holder.editInitialStock.text.toString().toIntOrNull()
+            if (newStock != null) {
+                updateStockListener(item, newStock)
+            } else {
+                Toast.makeText(holder.itemView.context, "Enter a valid stock number", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -44,3 +50,4 @@ class InventoryAdapter(
         return inventoryList.size
     }
 }
+

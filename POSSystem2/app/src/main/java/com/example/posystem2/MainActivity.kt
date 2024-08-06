@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private val currentOrderItems = mutableListOf<ItemModel>()
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: MainAdapter
+    private var isMainLayoutDisplayed = false
 
     private val addItemActivityResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -187,6 +188,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun switchToMainLayout() {
+        isMainLayoutDisplayed = true
         setContentView(R.layout.activity_main) // Set the correct layout
 
         window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
@@ -216,6 +218,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun switchToOrderView() {
+        isMainLayoutDisplayed = false
         setContentView(R.layout.order_view) // Set the correct layout
 
         window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
@@ -233,6 +236,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun switchToAccountsLayout() {
+        isMainLayoutDisplayed = false
         setContentView(R.layout.accounts_view)
 
         window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)
@@ -693,7 +697,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        if (isMainLayoutDisplayed) {
+            menuInflater.inflate(R.menu.toolbar_menu, menu)
+        }
         return true
     }
 
@@ -709,6 +715,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun switchToStatisticsView() {
+        isMainLayoutDisplayed = false
         setContentView(R.layout.statistics_view) // Make sure this layout has a RecyclerView and Toolbar like in activity_main
 
         window.statusBarColor = ContextCompat.getColor(this, R.color.purple_700)

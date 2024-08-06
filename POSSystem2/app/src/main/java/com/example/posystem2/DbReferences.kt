@@ -8,6 +8,7 @@ object DbReferences {
     const val COLUMN_TOTAL_AMOUNT = "total_amount"
     const val COLUMN_STATUS = "status"
     const val COLUMN_IS_DELETED = "is_deleted"
+    const val COLUMN_EMPLOYEE_ID = "employee_id"
 
     const val TABLE_ITEMS = "items"
     const val COLUMN_ITEM_ID = "item_id"
@@ -33,7 +34,8 @@ object DbReferences {
             $COLUMN_ORDER_DATE TEXT,
             $COLUMN_TOTAL_AMOUNT REAL,
             $COLUMN_STATUS TEXT, 
-            $COLUMN_IS_DELETED INTEGER DEFAULT 0
+            $COLUMN_IS_DELETED INTEGER DEFAULT 0,
+            $COLUMN_EMPLOYEE_ID INTEGER
         )
     """
 

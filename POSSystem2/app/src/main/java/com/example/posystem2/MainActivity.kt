@@ -127,6 +127,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveUserSession(profile: ProfileModel) {
         val editor = sharedPreferences.edit()
+        editor.putInt("userId", profile.id)
         editor.putString("email", profile.email)
         editor.putString("userType", profile.userType)
         editor.apply()
@@ -161,7 +162,7 @@ class MainActivity : AppCompatActivity() {
                     runOnUiThread {
                         if (existingProfile == null) {
                             val profile = ProfileModel(
-                                id = 0,
+                                id = 0, // Updated to match ProfileModel
                                 email = email,
                                 password = password,
                                 firstName = firstName,
@@ -169,7 +170,8 @@ class MainActivity : AppCompatActivity() {
                                 phoneNumber = phoneNumber,
                                 userType = userType
                             )
-                            dbHandler.addProfile(profile, shouldHashPassword = true) // Hash password for new accounts
+                            val newProfileId = dbHandler.addProfile(profile, shouldHashPassword = true) // Hash password for new accounts
+                            profile.id = newProfileId.toInt() // Ensure profile ID is updated
                             saveUserSession(profile)
                             switchToMainLayout()
                         } else {
@@ -182,6 +184,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
     private fun switchToMainLayout() {
         setContentView(R.layout.activity_main) // Set the correct layout
@@ -358,15 +361,26 @@ class MainActivity : AppCompatActivity() {
         val orderDateTextView: TextView = dialog.findViewById(R.id.orderDateDetailstv)
         val totalAmountTextView: TextView = dialog.findViewById(R.id.orderTotalDetailstv)
         val orderStatusTextView: TextView = dialog.findViewById(R.id.orderStatusDetailstv)
+        val takenByTextView: TextView = dialog.findViewById(R.id.orderTakenByDetailstv) // New TextView for taken by
         val itemsRecyclerView: RecyclerView = dialog.findViewById(R.id.itemsRecyclerView)
         val cancelOrderButton: Button = dialog.findViewById(R.id.cancelOrderButton)
         val completeOrderButton: Button = dialog.findViewById(R.id.completeOrderButton)
 
-        // Set order details
         orderIdTextView.text = "Order ID: ${order.orderId}"
         orderDateTextView.text = "Date: ${order.orderDate}"
         totalAmountTextView.text = "Total: ₱${order.totalAmount}"
         orderStatusTextView.text = "Status: ${order.status}"
+
+        lifecycleScope.launch {
+            val profile = dbHandler.getProfileById(order.employeeId)
+            runOnUiThread {
+                if (profile != null) {
+                    takenByTextView.text = "Taken by: ${profile.firstName} ${profile.lastName}"
+                } else {
+                    takenByTextView.text = "Taken by: Unknown"
+                }
+            }
+        }
 
         itemsRecyclerView.layoutManager = LinearLayoutManager(this)
         itemsRecyclerView.adapter = OrderDetailsAdapter(order.items)
@@ -395,8 +409,6 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
-
-
 
     private fun updateOrderStatus(order: OrderModel, newStatus: String) {
         val updatedOrder = order.copy(status = newStatus)
@@ -482,9 +494,6 @@ class MainActivity : AppCompatActivity() {
         itemCountTextView?.text = "Items: $itemCount"
     }
 
-
-
-
     private fun finalizeOrder() {
         if (currentOrderItems.isEmpty()) {
             Toast.makeText(this, "No items in the order", Toast.LENGTH_SHORT).show()
@@ -492,12 +501,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         val totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() * it.quantity }
+        val employeeId = sharedPreferences.getInt("userId", -1) // Assuming userId is stored in shared preferences
+
+        if (employeeId == -1) {
+            Toast.makeText(this, "Invalid user. Cannot finalize order.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val order = OrderModel(
             orderId = 0,
             orderDate = Date(),
             totalAmount = totalAmount,
             items = currentOrderItems.toList(),
-            status = "In Progress" // Default status
+            status = "In Progress",
+            employeeId = employeeId
         )
 
         lifecycleScope.launch {

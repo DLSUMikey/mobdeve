@@ -19,8 +19,9 @@ class DatabaseHandler(context: Context) {
             val values = ContentValues().apply {
                 put(DbReferences.COLUMN_ORDER_DATE, order.orderDate.time)
                 put(DbReferences.COLUMN_TOTAL_AMOUNT, order.totalAmount)
-                put(DbReferences.COLUMN_STATUS, order.status)  // Add status value
+                put(DbReferences.COLUMN_STATUS, order.status)
                 put(DbReferences.COLUMN_IS_DELETED, if (order.isDeleted) 1 else 0)
+                put(DbReferences.COLUMN_EMPLOYEE_ID, order.employeeId)
             }
             orderId = db.insert(DbReferences.TABLE_ORDERS, null, values)
 
@@ -105,9 +106,11 @@ class DatabaseHandler(context: Context) {
             val orderId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_ID))
             val orderDate = Date(cursor.getLong(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_DATE)))
             val totalAmount = cursor.getDouble(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_TOTAL_AMOUNT))
-            val status = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_STATUS)) ?: "In Progress" // Handle null status
+            val status = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_STATUS)) ?: "In Progress"
+            val employeeId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMPLOYEE_ID))
+            val isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IS_DELETED)) == 1
             val items = getItemsByOrderId(orderId)
-            orders.add(OrderModel(orderId, orderDate, totalAmount, items, status))
+            orders.add(OrderModel(orderId, orderDate, totalAmount, items, status, isDeleted, employeeId))
         }
         cursor.close()
         db.close()
@@ -183,6 +186,37 @@ class DatabaseHandler(context: Context) {
     fun getProfileByEmail(email: String): ProfileModel? {
         val db = dbHelper.readableDatabase
         val cursor = db.query(DbReferences.TABLE_PROFILE, null, "${DbReferences.COLUMN_EMAIL}=?", arrayOf(email), null, null, null)
+        return if (cursor.moveToFirst()) {
+            val profile = ProfileModel(
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PROFILE_ID)),
+                email = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMAIL)),
+                password = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PASSWORD)),
+                firstName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_FIRST_NAME)),
+                lastName = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_LAST_NAME)),
+                phoneNumber = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PHONE_NUMBER)),
+                userType = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_USER_TYPE))
+            )
+            cursor.close()
+            db.close()
+            profile
+        } else {
+            cursor.close()
+            db.close()
+            null
+        }
+    }
+
+    fun getProfileById(profileId: Int): ProfileModel? {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            DbReferences.TABLE_PROFILE,
+            null,
+            "${DbReferences.COLUMN_PROFILE_ID}=?",
+            arrayOf(profileId.toString()),
+            null,
+            null,
+            null
+        )
         return if (cursor.moveToFirst()) {
             val profile = ProfileModel(
                 id = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_PROFILE_ID)),
@@ -364,8 +398,10 @@ class DatabaseHandler(context: Context) {
             val orderDate = Date(cursor.getLong(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_ORDER_DATE)))
             val totalAmount = cursor.getDouble(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_TOTAL_AMOUNT))
             val status = cursor.getString(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_STATUS))
+            val employeeId = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_EMPLOYEE_ID))
+            val isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(DbReferences.COLUMN_IS_DELETED)) == 1
             val items = getItemsByOrderId(orderId)
-            orders.add(OrderModel(orderId, orderDate, totalAmount, items, status))
+            orders.add(OrderModel(orderId, orderDate, totalAmount, items, status, isDeleted, employeeId))
         }
         cursor.close()
         db.close()

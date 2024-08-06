@@ -8,7 +8,8 @@ data class OrderModel(
     val totalAmount: Double,
     val items: List<ItemModel>,
     val status: String, // New status field
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val employeeId: Int
 ) {
     val totalQuantity: Int
         get() = items.sumBy { it.quantity }

@@ -1,5 +1,5 @@
 object DbReferences {
-    const val DATABASE_VERSION = 6
+    const val DATABASE_VERSION = 7
     const val DATABASE_NAME = "posystem2.db"
 
     const val TABLE_ORDERS = "orders"
@@ -19,6 +19,9 @@ object DbReferences {
     const val COLUMN_QUANTITY = "quantity"
     const val COLUMN_INITIAL_STOCK = "initial_stock"
     const val COLUMN_AMOUNT_SOLD = "amount_sold"
+
+    const val TABLE_ORDER_ITEMS = "order_items"
+    const val COLUMN_ORDER_ITEM_ID = "order_item_id"
 
     const val TABLE_PROFILE = "profile"
     const val COLUMN_PROFILE_ID = "profile_id"
@@ -53,6 +56,17 @@ object DbReferences {
         )
     """
 
+    const val CREATE_ORDER_ITEMS_TABLE = """
+        CREATE TABLE IF NOT EXISTS $TABLE_ORDER_ITEMS (
+            $COLUMN_ORDER_ITEM_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            $COLUMN_ORDER_ID INTEGER,
+            $COLUMN_ITEM_ID INTEGER,
+            $COLUMN_QUANTITY INTEGER,
+            FOREIGN KEY($COLUMN_ORDER_ID) REFERENCES $TABLE_ORDERS($COLUMN_ORDER_ID),
+            FOREIGN KEY($COLUMN_ITEM_ID) REFERENCES $TABLE_ITEMS($COLUMN_ITEM_ID)
+        )
+    """
+
     const val CREATE_PROFILE_TABLE = """
         CREATE TABLE IF NOT EXISTS $TABLE_PROFILE (
             $COLUMN_PROFILE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,5 +81,6 @@ object DbReferences {
 
     const val DROP_ORDERS_TABLE = "DROP TABLE IF EXISTS $TABLE_ORDERS"
     const val DROP_ITEMS_TABLE = "DROP TABLE IF EXISTS $TABLE_ITEMS"
+    const val DROP_ORDER_ITEMS_TABLE = "DROP TABLE IF EXISTS $TABLE_ORDER_ITEMS"
     const val DROP_PROFILE_TABLE = "DROP TABLE IF EXISTS $TABLE_PROFILE"
 }

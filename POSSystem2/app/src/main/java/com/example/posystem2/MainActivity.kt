@@ -472,6 +472,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     private fun refreshItems() {
         lifecycleScope.launch {
             try {
@@ -802,14 +803,6 @@ class MainActivity : AppCompatActivity() {
     private fun getAggregatedStatistics(): List<StatisticsModel> {
         val itemMap = mutableMapOf<String, Int>()
 
-        // Get all items from the inventory
-        val allItems = dbHandler.getAllItems()
-
-        // Initialize all items with count 0
-        for (item in allItems) {
-            itemMap[item.itemName] = 0
-        }
-
         // Get completed orders and count the items
         val completedOrders = dbHandler.getCompletedOrders()
         for (order in completedOrders) {
@@ -822,6 +815,9 @@ class MainActivity : AppCompatActivity() {
         return itemMap.map { (itemName, itemCount) -> StatisticsModel(itemName, itemCount) }
             .sortedByDescending { it.itemCount }
     }
+
+
+
 
     private fun switchToInventoryLayout() {
         isMainLayoutDisplayed = false

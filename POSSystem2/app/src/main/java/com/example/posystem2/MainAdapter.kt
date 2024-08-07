@@ -55,7 +55,7 @@ class MainAdapter(
 
     fun updateItems(newItems: List<ItemModel>) {
         mList.clear()
-        mList.addAll(newItems.filter { !it.ordered })  // Only add items that are not ordered
+        mList.addAll(newItems)  // Only add items that are not ordered
         notifyDataSetChanged()
     }
 

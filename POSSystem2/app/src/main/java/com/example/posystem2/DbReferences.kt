@@ -1,5 +1,5 @@
 object DbReferences {
-    const val DATABASE_VERSION = 6  // Incremented version for schema update
+    const val DATABASE_VERSION = 6
     const val DATABASE_NAME = "posystem2.db"
 
     const val TABLE_ORDERS = "orders"
@@ -15,7 +15,6 @@ object DbReferences {
     const val COLUMN_IMAGE_URI = "image_uri"
     const val COLUMN_ITEM_NAME = "item_name"
     const val COLUMN_ITEM_PRICE = "item_price"
-    const val COLUMN_ORDER_ID_FK = "order_id_fk"
     const val COLUMN_ORDERED = "ordered"
     const val COLUMN_QUANTITY = "quantity"
     const val COLUMN_INITIAL_STOCK = "initial_stock"
@@ -47,12 +46,10 @@ object DbReferences {
             $COLUMN_IMAGE_URI TEXT,
             $COLUMN_ITEM_NAME TEXT,
             $COLUMN_ITEM_PRICE REAL,
-            $COLUMN_ORDER_ID_FK INTEGER,
             $COLUMN_ORDERED INTEGER DEFAULT 0,
             $COLUMN_QUANTITY INTEGER DEFAULT 1,
             $COLUMN_INITIAL_STOCK INTEGER DEFAULT 0, 
-            $COLUMN_AMOUNT_SOLD INTEGER DEFAULT 0,    
-            FOREIGN KEY($COLUMN_ORDER_ID_FK) REFERENCES $TABLE_ORDERS($COLUMN_ORDER_ID)
+            $COLUMN_AMOUNT_SOLD INTEGER DEFAULT 0
         )
     """
 

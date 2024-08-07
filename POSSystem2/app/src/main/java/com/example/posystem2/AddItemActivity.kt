@@ -61,7 +61,7 @@ class AddItemActivity : AppCompatActivity() {
         viewBinding.addBtn.setOnClickListener {
             if (areFieldsComplete()) {
                 val newItem = ItemModel(
-                    orderId = if (isEditing) itemId else 0,
+                    itemId = if (isEditing) itemId else 0,
                     imageUri = imageUri.toString(),
                     itemName = viewBinding.editTextItemName.text.toString(),
                     itemPrice = viewBinding.editTextItemPrice.text.toString().toFloat()

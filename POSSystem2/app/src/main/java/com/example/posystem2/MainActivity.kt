@@ -506,7 +506,7 @@ class MainActivity : AppCompatActivity() {
         when (action) {
             MainAdapter.MenuAction.EDIT -> {
                 val intent = Intent(this, AddItemActivity::class.java).apply {
-                    putExtra("itemId", item.orderId)
+                    putExtra("itemId", item.itemId)
                     putExtra("itemName", item.itemName)
                     putExtra("itemPrice", item.itemPrice)
                     putExtra("imageUri", item.imageUri)
@@ -549,10 +549,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val totalAmount = currentOrderItems.sumOf { it.itemPrice.toDouble() * it.quantity }
-        val employeeId = sharedPreferences.getInt(
-            "userId",
-            -1
-        ) // Assuming userId is stored in shared preferences
+        val employeeId = sharedPreferences.getInt("userId", -1)
 
         if (employeeId == -1) {
             Toast.makeText(this, "Invalid user. Cannot finalize order.", Toast.LENGTH_SHORT).show()
@@ -563,7 +560,7 @@ class MainActivity : AppCompatActivity() {
             orderId = 0,
             orderDate = Date(),
             totalAmount = totalAmount,
-            items = currentOrderItems.toList(),
+            items = currentOrderItems.map { it.copy(itemId = it.itemId) },
             status = "In Progress",
             employeeId = employeeId
         )
@@ -572,12 +569,11 @@ class MainActivity : AppCompatActivity() {
             try {
                 dbHandler.addOrder(order)
                 currentOrderItems.clear()
-                updateOrderSummary() // Reset the order summary
+                updateOrderSummary()  // Reset the order summary
                 Toast.makeText(this@MainActivity, "Order finalized", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Log.e("MainActivity", "Error finalizing order", e)
-                Toast.makeText(this@MainActivity, "Error finalizing order", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(this@MainActivity, "Error finalizing order", Toast.LENGTH_SHORT).show()
             }
         }
     }
